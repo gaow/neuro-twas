@@ -1,3 +1,5 @@
+test_dir = "/Users/haosun/Documents/WG_Reasearch_Assisstant/Fusion/install/fusion_twas-master/Testing/out/"
+
 # ==== TODO
 # * Make sure BLUP/BSLMM weights are being scaled properly based on MAF
 
@@ -63,12 +65,13 @@ if ( opt$verbose == 2 ) {
 # --- PREDICTION MODELS
 
 # BSLMM
+# This function is modified to accomondated the customized pipelines
 weights.bslmm = function( input , bv_type , snp , out=NA ) {
 	if ( is.na(out) ) out = paste(input,".BSLMM",sep='')
-
-	arg = paste( opt$PATH_gemma , " -miss 1 -maf 0 -r2 1 -rpace 1000 -wpace 1000 -bfile " , input , " -bslmm " , bv_type , " -o " , out , sep='' )
+  out = basename(out)
+	arg = paste( opt$PATH_gemma , " -miss 1 -maf 0 -r2 1 -rpace 1000 -wpace 1000 -bfile " , input , " -bslmm " , bv_type , " -o " , out, " -outdir ", "./output/" , sep='' )
 	system( arg , ignore.stdout=SYS_PRINT,ignore.stderr=SYS_PRINT)
-	eff = read.table( paste(out,".param.txt",sep=''),head=T,as.is=T)
+	eff = read.table( paste("./output/",out,".param.txt",sep=''),head=T,as.is=T)
 	eff.wgt = rep(NA,length(snp))
 	m = match( snp , eff$rs )
 	m.keep = !is.na(m)
@@ -376,3 +379,4 @@ save( wgt.matrix , snps , cv.performance , hsq, hsq.pv, N.tot , file = paste( op
 # --- CLEAN-UP
 if ( opt$verbose >= 1 ) cat("Cleaning up\n")
 cleanup()
+
