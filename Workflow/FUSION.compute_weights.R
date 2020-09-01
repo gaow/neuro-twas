@@ -1,4 +1,3 @@
-test_dir = "/Users/haosun/Documents/WG_Reasearch_Assisstant/Fusion/install/fusion_twas-master/Testing/out/"
 
 # ==== TODO
 # * Make sure BLUP/BSLMM weights are being scaled properly based on MAF
