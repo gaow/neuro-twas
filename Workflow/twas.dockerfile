@@ -32,9 +32,11 @@ RUN sed -i '1 s/^/#!\/usr\/bin\/env Rscript\n/' /usr/local/bin/FUSION.compute_we
     chmod +x /usr/local/bin/FUSION.compute_weights.R
 
 ENV FUSION_VERSION 6fedd22b47f9dab6a790c7779467f4d40ae57704
-RUN cd /usr/local/bin && wget https://github.com/gusevlab/fusion_twas/blob/${FUSION_VERSION}/FUSION.assoc_test.R && \
+RUN cd /usr/local/bin && wget https://raw.githubusercontent.com/gusevlab/fusion_twas/6fedd22b47f9dab6a790c7779467f4d40ae57704/FUSION.assoc_test.R && \
     sed -i '1 s/^/#!\/usr\/bin\/env Rscript\n/' /usr/local/bin/FUSION.assoc_test.R && \
     chmod +x /usr/local/bin/FUSION.assoc_test.R
+
+RUN R --slave -e "for (p in c('data.table', 'readr', 'dplyr', 'tibble')) if (!(p %in% rownames(installed.packages()))) install.packages(p, repos = 'http://cran.rstudio.com')"
 
 USER jovyan
 
