@@ -120,7 +120,7 @@ if ( !is.na(opt$perm) && opt$perm > 0 ) {
 }
 
 # Load in reference data
-genos = read_plink(paste(opt$ref_ld_chr,chr,sep=''),impute="avg")
+genos = read_plink(opt$ref_ld_chr,impute="avg")
 
 # Match summary data to input, record NA where summary data is missing
 m = match( genos$bim[,2] , sumstat$SNP )
