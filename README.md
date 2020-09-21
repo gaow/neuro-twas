@@ -1,8 +1,15 @@
-# twas-dev
-Development code (private repo) for TWAS related multiomic gene-mapping in Alzheimer's disease data. Potential application of this project is to pinpoint SNPs that are regulating the disease phenotype both directly and via expression modulation and hence identify new targets for clinical genetics diagnostics and/or precision medicine. Ultimately we aim to transfer both the biological mechanism and analysis workflows to predict other complex trait based on both SNPs and the imputed gene expression.
+# Molecular phenotype prediction and association mapping for Alzheimer's disease (AD)
 
-Currently developing Pipeline for 
-  RNA Seq Data transformation and QC
-  Customized weight generation (Fusion-based)
-  Expression imputation (Fusion-based)
- 
+This project leverages available molecular phenotype data in brains to perform TWAS for AD, in a variety of AD cohorts.
+
+Using multi-omics data from brains for >1000 individuals, we train models for predicting from genotypes molecular phenotypes, ie, gene expression, alternative splicing, APA, methylation, histone acetylation, etc. 
+We will also leverage genomic annotations obtained for different brain tissues and cell types to improve the predictions. Prediction of molecular phenotypes using models trained will be applied to 
+multi-ethnic AD cohorts, to perform association testing for a number of AD related phenotypes including age at onset and cognitive memory functions.
+
+We will also explore the possibility to predict one molecular phenotype from others and to complete missing values in these phenotypes.
+
+## Expression data TWAS
+
+1. RNA Seq Data transformation and QC
+2. Customized weight generation (Fusion-based)
+3. Expression imputation (Fusion-based)

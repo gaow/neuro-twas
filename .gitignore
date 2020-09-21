@@ -1,0 +1,5 @@
+**/.sos
+**/.ipynb_checkpoints
+**/*.stdout
+**/*.stderr
+**/.DS_Store
