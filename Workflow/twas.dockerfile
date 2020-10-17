@@ -23,8 +23,9 @@ RUN wget https://github.com/genetics-statistics/GEMMA/releases/download/0.98.1/g
 ENV P2R_VERSION d74be015e8f54d662b96c6c2a52a614746f9030d
 RUN wget https://github.com/gabraham/plink2R/archive/${P2R_VERSION}.zip && \
     unzip ${P2R_VERSION}.zip && \
-    R --slave -e "install.packages(c('optparse','RColorBrewer', 'glmnet', 'RcppEigen'))" && \
+    R --slave -e "install.packages(c('optparse','RColorBrewer', 'glmnet', 'RcppEigen','devtools','BiocManager'))" && \
     R --slave -e "install.packages('plink2R-${P2R_VERSION}/plink2R/',repos=NULL)" && \
+    R --slave -e "BiocManager::install('biomaRt')" && \
     rm -rf /tmp/*
 
 RUN R --slave -e "for (p in c('data.table', 'readr', 'dplyr', 'tibble')) if (!(p %in% rownames(installed.packages()))) install.packages(p, repos = 'http://cran.rstudio.com')"
