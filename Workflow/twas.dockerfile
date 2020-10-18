@@ -25,7 +25,7 @@ RUN wget https://github.com/gabraham/plink2R/archive/${P2R_VERSION}.zip && \
     unzip ${P2R_VERSION}.zip && \
     R --slave -e "install.packages(c('optparse','RColorBrewer', 'glmnet', 'RcppEigen','devtools','BiocManager'))" && \
     R --slave -e "install.packages('plink2R-${P2R_VERSION}/plink2R/',repos=NULL)" && \
-    R --slave -e "devtools::install_github("stephenslab/susieR", ref='cran')" && \
+    R --slave -e "devtools::install_github('stephenslab/susieR', ref='cran')" && \
     rm -rf /tmp/*
 
 RUN R --slave -e "for (p in c('data.table', 'readr', 'dplyr', 'tibble')) if (!(p %in% rownames(installed.packages()))) install.packages(p, repos = 'http://cran.rstudio.com')"
