@@ -23,7 +23,7 @@ RUN wget https://github.com/genetics-statistics/GEMMA/releases/download/0.98.1/g
 ENV P2R_VERSION d74be015e8f54d662b96c6c2a52a614746f9030d
 RUN wget https://github.com/gabraham/plink2R/archive/${P2R_VERSION}.zip && \
     unzip ${P2R_VERSION}.zip && \
-    R --slave -e "install.packages(c('optparse','RColorBrewer', 'glmnet', 'RcppEigen','devtools','BiocManager'))" && \
+    R --slave -e "install.packages(c('optparse','RColorBrewer', 'glmnet', 'RcppEigen','devtools','BiocManager','data.table'))" && \
     R --slave -e "install.packages('plink2R-${P2R_VERSION}/plink2R/',repos=NULL)" && \
     R --slave -e "devtools::install_github('stephenslab/susieR', ref='cran')" && \
     rm -rf /tmp/*
