@@ -26,6 +26,7 @@ RUN wget https://github.com/gabraham/plink2R/archive/${P2R_VERSION}.zip && \
     R --slave -e "install.packages(c('optparse','RColorBrewer', 'glmnet', 'RcppEigen','devtools','BiocManager','data.table'))" && \
     R --slave -e "install.packages('plink2R-${P2R_VERSION}/plink2R/',repos=NULL)" && \
     R --slave -e "devtools::install_github('stephenslab/susieR', ref='cran')" && \
+    R --slave -e "devtools::install_github('hadley/devtools', ref='cran')" && \
     rm -rf /tmp/*
 
 RUN R --slave -e "for (p in c('data.table', 'readr', 'dplyr', 'tibble')) if (!(p %in% rownames(installed.packages()))) install.packages(p, repos = 'http://cran.rstudio.com')"
@@ -41,6 +42,24 @@ RUN sed -i '1 s/^/#!\/usr\/bin\/env Rscript\n/' /usr/local/bin/FUSION.assoc_test
     chmod +x /usr/local/bin/FUSION.assoc_test.R
 
 
+# GIT
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+RUN apt-get --assume-yes update
+RUN apt-get --assume-yes install git
+RUN apt-get --assume-yes install libgsl0-dev
+
+#RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+#RUN brew install gsl
+
+
+
+
+# mashr
+RUN R --slave -e "install.packages('remote')" && \
+    R --slave -e "remotes::install_github('stephenslab/mashr')" && \ 
+    R --slave -e "remotes::install_github('stephenslab/mmbr')" 
+ 
 USER jovyan
 
 # to build: docker build -t gaow/twas -f twas.dockerfile .
