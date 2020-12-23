@@ -59,7 +59,17 @@ RUN apt-get --assume-yes install libgsl0-dev
 RUN R --slave -e "install.packages('remote')" && \
     R --slave -e "remotes::install_github('stephenslab/mashr')" && \ 
     R --slave -e "remotes::install_github('stephenslab/mmbr')" 
+
+
+
+# flashier
+RUN R --slave -e "devtools::install_github('willwerscheid/flashier')"
+
+
+
  
 USER jovyan
 
 # to build: docker build -t gaow/twas -f twas.dockerfile .
+
+
