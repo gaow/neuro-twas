@@ -89,7 +89,7 @@ weights.lasso = function( input , hsq , snp , out=NA ) {
 	if ( !file.exists(paste(out,".lasso",sep='')) ) {
 	cat( paste(out,".lasso",sep='') , " LASSO output did not exist\n" )
 	eff.wgt = rep(NA,length(snp))
-	} else {
+	} else 
 	eff = read.table( paste(out,".lasso",sep=''),head=T,as.is=T)
 	eff.wgt = rep(0,length(snp))
 	m = match( snp , eff$SNP )
