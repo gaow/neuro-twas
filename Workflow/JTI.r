@@ -1,3 +1,4 @@
+
 #-----Joint-Tissue-gene-expression-Imputation-(JTI)-----
 cat('\n---Joint-Tissue-gene-expression-Imputation-(JTI)---\n')
 
@@ -25,15 +26,31 @@ option_list = list(
 
 opt = parse_args(OptionParser(option_list=option_list))
 
+# example input
+###################################################
+# script_dir='/Users/Shared/OneDrive/Wang_Lab/src'  
+# example_file_dir='/Users/Shared/OneDrive/Wang_Lab/data'  
+# 
+# Rscript ${script_dir}/JTI.r \
+# --tissue='Adipose_Subcutaneous' \
+# --geneid="ENSG00000182957" \
+# --genotype_path='/Users/Shared/OneDrive/Wang_Lab/data/jti_example_geno' \
+# --expression_path='/Users/Shared/OneDrive/Wang_Lab/data/jti_example_exp.txt' \
+# --tmp_folder='/Users/Shared/OneDrive/Wang_Lab/data/tmp' \
+# --gencode_path '/Users/Shared/OneDrive/Wang_Lab/data/gencode.v32.GRCh37.txt' \
+# --out_path '/Users/Shared/OneDrive/Wang_Lab/data'
+# # 
+
+
 #input
-tissue=opt$tissue
-geneid=opt$geneid
-plink_path=opt$plink_path
-genotype_path=opt$genotype_path
-tmp_folder=opt$tmp_folder
-expression_path=opt$expression_path
-gencode_path=opt$gencode_path
-out_path=opt$out_path
+tissue='Adipose_Subcutaneous'
+geneid="ENSG00000182957"
+plink_path="plink"
+genotype_path='/Users/Shared/OneDrive/Wang_Lab/data/jti_example_geno'
+tmp_folder='/Users/Shared/OneDrive/Wang_Lab/data/tmp'
+expression_path='/Users/Shared/OneDrive/Wang_Lab/data/jti_example_exp.txt'
+gencode_path='/Users/Shared/OneDrive/Wang_Lab/data/gencode.v32.GRCh37.txt'
+out_path='/Users/Shared/OneDrive/Wang_Lab/data'
 
 cat(' INFO loading gene position annotation ...\n')
 #load gene annotation file
@@ -55,9 +72,9 @@ pos_to=gencode[which(gencode$geneid==geneid),'left']+1000000
 cat(' INFO generating dosage genotype data ...\n')
 #extract genotypes from plink file to dosage file
 cmd=paste0(plink_path,' --bfile ',genotype_path,' --chr ',chr,' --from-bp ',pos_from,' --to-bp ',pos_to,' --recode A --out ',tmp_folder,'/',geneid)
-system(cmd,ignore.stdout=T,ignore.stderr=T)
+system(cmd,ignore.stdout=F,ignore.stderr=F)
 cmd=paste0(plink_path,' --bfile ',genotype_path,' --chr ',chr,' --from-bp ',pos_from,' --to-bp ',pos_to,' --make-bed --out ',tmp_folder,'/',geneid)
-system(cmd,ignore.stdout=T,ignore.stderr=T)
+system(cmd,ignore.stdout=F,ignore.stderr=F)
 
 #load dosage file
 dosage_raw<-try(read.table(paste0(tmp_folder,'/',geneid,'.raw'),header = T,stringsAsFactors = F))
@@ -77,7 +94,7 @@ snp_info<-snp_info_raw[,c('rsid','chr_bp','ref_allele','counted_allele')]
 #load expression
 cat(' INFO loading expression data ...\n')
 exp<-read.table(expression_path,header = T,stringsAsFactors = F)
-    
+
 
 #model training
 cat(' INFO initializing model training ...\n')
@@ -174,4 +191,6 @@ cmd=paste0('rm -r ',tmp_folder)
 system(cmd,wait = T)
 
 cat(' INFO done \n')
+
+
 
