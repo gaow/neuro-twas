@@ -183,35 +183,34 @@ jti.modeltrain = function(exp,
     snp_info<-snp_info[,c(5,1:4,9,6:8)]
     weight_file<-snp_info[snp_info$weight!=0,]
     if (nrow(weight_file)>0){
+      
       return(weight_file)
+      
     }
   }
-  
+ 
 #cleaning
 cat(' INFO cleaning tmp folder \n')
 cmd=paste0('rm -r ',tmp_folder)
 system(cmd,wait = T)
   
-cat(' INFO done \n')  
+cat(' INFO done \n')
+  
+
   
 }
 
-# call the jti function
+
+# call function
 jti.modeltrain(exp = exp, 
                tissue = tissue, 
                tmp_folder = tmp_folder,
                geneid = geneid,
                dosage = dosage)
-
-# write weight file at local
+# write result to local
 write.table(weight_file,paste0(out_path,'/',geneid,'_',tissue,'.txt'),quote = F,row.names = F,sep = '\t')
-
-# RDS file
+# save rds to local
 saveRDS(list(exp, tissue, tmp_folder, geneid, dosage), "./input_JTI.rds")
-
-
-
-
 
 
 
