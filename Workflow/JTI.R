@@ -35,8 +35,8 @@ expression_path=opt$expression_path
 gencode_path=opt$gencode_path
 out_path=opt$out_path
 
-# example input
-###################################################
+ 
+###--example input--#######################################
 # tissue='Adipose_Subcutaneous'
 # geneid="ENSG00000182957"
 # plink_path="/Users/Shared/OneDrive/Wang_Lab/plink_mac_20201019/plink"
@@ -45,6 +45,9 @@ out_path=opt$out_path
 # expression_path='/Users/Shared/OneDrive/Wang_Lab/data/jti_example_exp.txt'
 # gencode_path='/Users/Shared/OneDrive/Wang_Lab/data/gencode.v32.GRCh37.txt'
 # out_path='/Users/Shared/OneDrive/Wang_Lab/data'
+
+
+###--load data--########################################
 
 cat(' INFO loading gene position annotation ...\n')
 #load gene annotation file
@@ -90,10 +93,11 @@ cat(' INFO loading expression data ...\n')
 exp<-read.table(expression_path,header = T,stringsAsFactors = F)
 
 
+###--function jti.modeltrain--################################
 jti.modeltrain = function(exp, 
                           tissue,
-                          tmp_folder,
                           dosage,
+                          tmp_folder,
                           geneid){
   
   #model training
@@ -173,6 +177,13 @@ jti.modeltrain = function(exp,
   cat(' INFO the r = ',r_test,', p = ',p_test,' \n')
   
   #---output---
+  #cleaning
+  cat(' INFO cleaning tmp folder \n')
+  cmd=paste0('rm -r ',tmp_folder)
+  system(cmd,wait = T)
+  
+  cat(' INFO done \n')
+  
   if (p_test<0.05 & r_test>0.1){
     snp_info$gene<-geneid
     snp_info$r2<-r_test^2
@@ -189,26 +200,19 @@ jti.modeltrain = function(exp,
     }
   }
  
-#cleaning
-cat(' INFO cleaning tmp folder \n')
-cmd=paste0('rm -r ',tmp_folder)
-system(cmd,wait = T)
-  
-cat(' INFO done \n')
-  
-
   
 }
 
 
-# call function
+
+####--call function--######################################
 jti.modeltrain(exp = exp, 
                tissue = tissue, 
                tmp_folder = tmp_folder,
                geneid = geneid,
                dosage = dosage)
 # write result to local
-write.table(weight_file,paste0(out_path,'/',geneid,'_',tissue,'.txt'),quote = F,row.names = F,sep = '\t')
+# write.table(weight_file,paste0(out_path,'/',geneid,'_',tissue,'.txt'),quote = F,row.names = F,sep = '\t')
 # save rds to local
 saveRDS(list(exp, tissue, tmp_folder, geneid, dosage), "./input_JTI.rds")
 
