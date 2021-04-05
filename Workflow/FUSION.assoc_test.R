@@ -181,6 +181,7 @@ for ( w in 1:nrow(wgtlist) ) {
 	row.pval = grep( "pval" , rownames(cv.performance) )	
 	
 	# Identify the best model
+    
 	if ( !is.na(opt$force_model) ) {
 		mod.best = which( colnames(wgt.matrix) == opt$force_model )
 		if ( length(mod.best) == 0 ) {

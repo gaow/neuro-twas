@@ -6,6 +6,11 @@ suppressMessages(library("optparse"))
 suppressMessages(library('plink2R'))
 suppressMessages(library('glmnet'))
 suppressMessages(library('methods'))
+suppressMessages(library('dplyr'))
+suppressMessages(library('tibble'))
+suppressMessages(library('modelr'))
+suppressMessages(library('readr'))
+suppressMessages(library('purrr'))
 
 option_list = list(
   make_option("--bfile", action="store", default=NA, type='character',
@@ -89,7 +94,7 @@ weights.lasso = function( input , hsq , snp , out=NA ) {
 	if ( !file.exists(paste(out,".lasso",sep='')) ) {
 	cat( paste(out,".lasso",sep='') , " LASSO output did not exist\n" )
 	eff.wgt = rep(NA,length(snp))
-	} else {
+	} else 
 	eff = read.table( paste(out,".lasso",sep=''),head=T,as.is=T)
 	eff.wgt = rep(0,length(snp))
 	m = match( snp , eff$SNP )
@@ -278,9 +283,25 @@ if ( !is.na(opt$covar) && opt$resid ) {
 N.tot = nrow(genos$bed)
 if ( opt$verbose >= 1 ) cat(nrow(pheno),"phenotyped samples, ",nrow(genos$bed),"genotyped samples, ",ncol(genos$bed)," markers\n")
 
+
+cv_data_gen = function(X,Y,times,test_prop){
+    # Merged the X and Y for producing testing and training set for modelr cv
+    cv_df_raw = cbind(X,Y)%>%as_tibble() 
+    cv_df = crossv_mc(cv_df_raw, times,test = test_prop)%>%mutate(
+      train_X = map(train,~as_tibble(.x)[1:ncol(X)]%>%as.matrix()),
+      train_Y_tmp = map(train,~as_tibble(.x)[(ncol(X)+1):(ncol(X)+ncol(Y))]),
+      train_Y = map(train_Y_tmp,~cbind(.x[,1:2] , V6 = scale(.x$V6%>%as.numeric))), 
+      test_X = map(test,~as_tibble(.x)[1:ncol(X)]%>%as.matrix()),
+      test_Y_tmp = map(test,~as_tibble(.x)[(ncol(X)+1):(ncol(X)+ncol(Y))]),
+      test_Y = map(test_Y_tmp,~cbind(.x[,1:2] , V6 = scale(.x$V6%>%as.numeric)))
+    )  
+    return(cv_df)
+    }
+
 # --- CROSSVALIDATION ANALYSES
 set.seed(1)
-cv.performance = matrix(NA,nrow=2,ncol=M)
+CV_times = 100
+cv.performance = matrix(0,nrow=2,ncol=M)
 rownames(cv.performance) = c("rsq","pval")
 colnames(cv.performance) = models
 
@@ -288,29 +309,32 @@ if ( opt$crossval <= 1 ) {
 if ( opt$verbose >= 1 ) cat("### Skipping cross-validation\n")
 } else {
 if ( opt$verbose >= 1 ) cat("### Performing",opt$crossval,"fold cross-validation\n")
+    
 cv.all = pheno
-N = nrow(cv.all)
-cv.sample = sample(N)
-cv.all = cv.all[ cv.sample , ]
-folds = cut(seq(1,N),breaks=opt$crossval,labels=FALSE)
 
-cv.calls = matrix(NA,nrow=N,ncol=M)
-
-for ( i in 1:opt$crossval ) {
-	if ( opt$verbose >= 1 ) cat("- Crossval fold",i,"\n")
-	indx = which(folds==i,arr.ind=TRUE)
-	cv.train = cv.all[-indx,]
-	# store intercept
-	intercept = mean( cv.train[,3] )
-	cv.train[,3] = scale(cv.train[,3])
-	
-	# hide current fold
-	cv.file = paste(opt$tmp,".cv",sep='')
-	write.table( cv.train , quote=F , row.names=F , col.names=F , file=paste(cv.file,".keep",sep=''))	
-	arg = paste( opt$PATH_plink ," --allow-no-sex --bfile ",opt$tmp," --keep ",cv.file,".keep --out ",cv.file," --make-bed",sep='')
-	system(arg , ignore.stdout=SYS_PRINT,ignore.stderr=SYS_PRINT)
-
-	for ( mod in 1:M ) {
+cv_df = cv_data_gen(genos$bed,pheno, CV_times ,1/opt$crossval)
+    
+rsq_tmp = list()
+pval_tmp = list()
+    
+for ( mod in 1:M ) {   
+for(i in 1: CV_times){    
+    cv.file = paste(opt$tmp,".cv",sep='')
+    cv.train = cv_df$train_Y[[i]]
+    cv.test_X = cv_df$test_X[[i]]
+    cv.test_Y = cv_df$test_Y[[i]]
+    cv.train_X = cv_df$train_X[[i]]
+    N = nrow(cv.test_Y)
+    cv.calls = matrix(NA,nrow=N,ncol=1)
+    
+    cv.performance_tmp = matrix(NA,nrow=2,ncol=M)
+    rownames(cv.performance_tmp) = c("rsq","pval")
+    colnames(cv.performance_tmp) = models    
+    
+    write.table( cv.train , quote=F , row.names=F , col.names=F , file=paste(cv.file,".keep",sep=''))
+    arg = paste( opt$PATH_plink ," --allow-no-sex --bfile ",opt$tmp," --keep ",cv.file,".keep --out ",cv.file," --make-bed",sep='')
+    system(arg , ignore.stdout=SYS_PRINT,ignore.stderr=SYS_PRINT)
+    
 		if ( models[mod] == "blup" ) {
 			pred.wgt = weights.bslmm( cv.file , bv_type=2 , snp=genos$bim[,2] )
 		}
@@ -321,30 +345,36 @@ for ( i in 1:opt$crossval ) {
 			pred.wgt = weights.lasso( cv.file , hsq[1] , snp=genos$bim[,2] )
 		}
 		else if ( models[mod] == "enet" ) {
-			pred.wgt = weights.enet( genos$bed[ cv.sample[ -indx ],] , as.matrix(cv.train[,3]) , alpha=0.5 )
+			pred.wgt = weights.enet( cv.train_X , as.matrix(cv.train[,3]) , alpha=0.5 )
 		}		
 		else if ( models[mod] == "top1" ) {
-			pred.wgt = weights.marginal( genos$bed[ cv.sample[ -indx ],] , as.matrix(cv.train[,3,drop=F]) , beta=T )
+			pred.wgt = weights.marginal( cv.train_X , as.matrix(cv.train[,3,drop=F]) , beta=T )
 			pred.wgt[ - which.max( pred.wgt^2 ) ] = 0
 		}
-
-		# predict from weights into sample
+       # predict from weights into sample
 		pred.wgt[ is.na(pred.wgt) ] = 0
-		cv.calls[ indx , mod ] = genos$bed[ cv.sample[ indx ] , ] %*% pred.wgt
-	}
-}
-
-# compute rsq + P-value for each model
-for ( mod in 1:M ) {
-	if ( !is.na(sd(cv.calls[,mod])) && sd(cv.calls[,mod]) != 0 ) {
-		reg = summary(lm( cv.all[,3] ~ cv.calls[,mod] ))
-		cv.performance[ 1, mod ] = reg$adj.r.sq
-		cv.performance[ 2, mod ] = reg$coef[2,4]
+		cv.calls[ , 1 ] = cv.test_X %*% pred.wgt
+    
+    # compute rsq + P-value for each model
+    
+	if ( !is.na(sd(cv.calls[,1])) && sd(cv.calls[,1]) != 0 ) {
+		reg = summary(lm( cv.test_Y[,3] ~ cv.calls[,1] ))
+		cv.performance_tmp[ 1, mod ] = reg$adj.r.sq
+		cv.performance_tmp[ 2, mod ] = reg$coef[2,4]
 	} else {
-		cv.performance[ 1, mod ] = NA
-		cv.performance[ 2, mod ] = NA
+		cv.performance_tmp[ 1, mod ] = NA
+		cv.performance_tmp[ 2, mod ] = NA
 	}
+    # Store the result of cv.performance
+    rsq_tmp[[i]] =  cv.performance_tmp[1,mod]
+    pval_tmp[[i]] = cv.performance_tmp[2,mod]
 }
+    rsq_mean = rsq_tmp%>%as.numeric%>%na.omit%>%mean()
+    pval_mean = pval_tmp%>%as.numeric%>%na.omit%>%mean()
+    cv.performance[1,mod] = rsq_mean
+    cv.performance[2,mod] = pval_mean
+}
+    
 if ( opt$verbose >= 1 ) write.table(cv.performance,quote=F,sep='\t')
 }
 
