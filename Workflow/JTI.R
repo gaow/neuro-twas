@@ -35,16 +35,47 @@ expression_path=opt$expression_path
 gencode_path=opt$gencode_path
 out_path=opt$out_path
 
+########-- mv_susie_1 outputs downloaded from cluster --########################
+merged_list = './mv_susie/output/geneTpmResidualsAgeGenderAdj_rename.ENSG00000196126.merged_list'
+#?? FIX: how will we use the merged_list?
+merged_exp = './mv_susie/output/geneTpmResidualsAgeGenderAdj_rename.ENSG00000196126.merged.exp'  # will be jti's exp
+merged_bed = "./mv_susie/output/geneTpmResidualsAgeGenderAdj_rename.ENSG00000196126.merged"   # = genotype path
+twas_region_list = "./mv_susie/twas_region_list"     # will be jti's input named as gencode
+
+#######--matching relationships between JTI.R intpu and MV_susie_1 output--#####
+# genotype files
+jti_genotype = read.plink(genotype_path)
+mv_genotype = read.plink(merged_bed)
+
+# expression files
+jti_expression = read.table('./JTI/data/jti_example_exp.txt', header = T, stringsAsFactors = F)
+mv_exp = read.table(merged_exp, header = T, stringsAsFactors = F)
+write_delim(mv_exp, file = "./mv_jti/data/mv_exp")    # store in local, will use in example inputs
+# mv_molecular_pheno$fam[6] == jti_expression[3]
+# mv_molecular_pheno$fam[1] == jti_expression[2]
+# mv_region_list[1] == jti_expression[1]
+
+# gene annotation files
+jti.gencode<-read.table("./JTI/data/gencode.v32.GRCh37.txt",header = T,stringsAsFactors = F)
+mv_gencode = read.delim(twas_region_list, header = T, stringsAsFactors = F)
+mv_gencode = cbind(mv_gencode[1], mv_gencode[2], mv_gencode[3], mv_gencode[4])
+write_delim(mv_gencode, file = "./mv_jti/data/mv_gencode")   # store in local, will use in example inputs
+# jti.gencode[1] = (/home/hs3163/Project/mwe/TWAS_pipeline_MWE/region_list) [1]
+# jti.gencode[2] = (/home/hs3163/Project/mwe/TWAS_pipeline_MWE/region_list) [2]
+# jti.gencode[3] = (/home/hs3163/Project/mwe/TWAS_pipeline_MWE/region_list) [3]
+# jti.gencode[6] = (/home/hs3163/Project/mwe/TWAS_pipeline_MWE/region_list) [4]
+
+
  
-###--example input--#######################################
-# tissue='Adipose_Subcutaneous'
-# geneid="ENSG00000182957"
-# plink_path="/Users/Shared/OneDrive/Wang_Lab/plink_mac_20201019/plink"
-# genotype_path='/Users/Shared/OneDrive/Wang_Lab/data/jti_example_geno'
-# tmp_folder='/Users/Shared/OneDrive/Wang_Lab/data/tmp'
-# expression_path='/Users/Shared/OneDrive/Wang_Lab/data/jti_example_exp.txt'
-# gencode_path='/Users/Shared/OneDrive/Wang_Lab/data/gencode.v32.GRCh37.txt'
-# out_path='/Users/Shared/OneDrive/Wang_Lab/data'
+###############-- example inputs --#############################################
+tissue='geneTpmResidualsAgeGenderAdj_rename'   # ??FIX: what does this specific prefix name mean? 
+geneid="ENSG00000196126"                     # ??FIX: when mv_susie_1 mwe geneid != mv_gencode geneid?
+plink_path="/Users/Shared/OneDrive/Wang_Lab/plink_mac_20201019/plink"   # your plink location
+genotype_path= merged_bed
+tmp_folder='./mv_jti/tmp '
+expression_path="./mv_jti/data/mv_exp.txt"
+gencode_path='./mv_jti/data/mv_gencode.txt'
+out_path='./mv_jti/output'
 
 
 ###--load data--########################################
