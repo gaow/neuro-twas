@@ -1,4 +1,3 @@
-
 # ==== TODO
 # * Make sure BLUP/BSLMM weights are being scaled properly based on MAF
 
@@ -11,6 +10,9 @@ suppressMessages(library('tibble'))
 suppressMessages(library('modelr'))
 suppressMessages(library('readr'))
 suppressMessages(library('purrr'))
+
+
+
 
 option_list = list(
   make_option("--bfile", action="store", default=NA, type='character',
@@ -44,7 +46,9 @@ option_list = list(
   make_option("--rn", action="store_true", default=FALSE,
               help="Rank-normalize the phenotype after all QC: [default: %default]"),
   make_option("--save_hsq", action="store_true", default=FALSE,
-              help="Save heritability results even if weights are not computed [default: %default]"),			  
+              help="Save heritability results even if weights are not computed [default: %default]"),
+  make_option("--CV_times", action="store", default=50,
+              help="the number of crossvalidation iteration to be ran [default: %default]"),
   make_option("--models", action="store", default="blup,lasso,top1,enet", type='character',
               help="Comma-separated list of prediction models [default: %default]\n
 					Available models:\n
@@ -56,9 +60,17 @@ option_list = list(
 		  
 )
 
+
+
+
+
 opt = parse_args(OptionParser(option_list=option_list))
 models = unique( c(unlist(strsplit(opt$models,',')),"top1") )
 M = length(models)
+
+CV_times = opt$CV_times
+
+
 
 if ( opt$verbose == 2 ) {
   SYS_PRINT = F
@@ -80,8 +92,7 @@ weights.bslmm = function( input , bv_type , snp , out=NA ) {
 	eff.wgt = rep(NA,length(snp))
 	m = match( snp , eff$rs )
 	m.keep = !is.na(m)
-	m = m[m.keep]
-	eff.wgt[m.keep] = (eff$alpha + eff$beta * eff$gamma)[m]
+ 	eff.wgt[m.keep] = (eff$alpha + eff$beta * eff$gamma)[m]
 	return( eff.wgt )
 }
 
@@ -94,7 +105,7 @@ weights.lasso = function( input , hsq , snp , out=NA ) {
 	if ( !file.exists(paste(out,".lasso",sep='')) ) {
 	cat( paste(out,".lasso",sep='') , " LASSO output did not exist\n" )
 	eff.wgt = rep(NA,length(snp))
-	} else 
+	} else {
 	eff = read.table( paste(out,".lasso",sep=''),head=T,as.is=T)
 	eff.wgt = rep(0,length(snp))
 	m = match( snp , eff$SNP )
@@ -298,6 +309,7 @@ cv_data_gen = function(X,Y,times,test_prop){
     return(cv_df)
     }
 
+
 # --- CROSSVALIDATION ANALYSES
 set.seed(1)
 CV_times = 100
@@ -316,6 +328,7 @@ cv_df = cv_data_gen(genos$bed,pheno, CV_times ,1/opt$crossval)
     
 rsq_tmp = list()
 pval_tmp = list()
+
     
 for ( mod in 1:M ) {   
 for(i in 1: CV_times){    
@@ -409,4 +422,5 @@ save( wgt.matrix , snps , cv.performance , hsq, hsq.pv, N.tot , file = paste( op
 # --- CLEAN-UP
 if ( opt$verbose >= 1 ) cat("Cleaning up\n")
 cleanup()
+
 
