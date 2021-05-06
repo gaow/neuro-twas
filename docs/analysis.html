@@ -181,10 +181,6 @@ $(document).ready(function () {
 </li>
         
 <li>
-  <a href="./writeup.html">Writeup</a>
-</li>
-        
-<li>
   <a href="./analysis.html">Analysis</a>
 </li>
         
@@ -213,15 +209,6 @@ $(document).ready(function () {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Alz_gene_description.html"><strong>Alz gene description</strong></a><br>
-&nbsp; &nbsp;nohup sos run ~/GIT/neuro-twas/Workflow/mv_susie.ipynb mv_susie    --molecular_pheno_dir "/home/hs3163/Project/Alz/multi/molecular_phenotype_list"   --region_list "/home/hs3163/Project/Alz/multi/mv_susie_gene_list.txt"   --wd "/home/hs3163/Project/Alz/multi_2"   --name_prefix "geneTpmResidualsAgeGenderAdj_rename"   --container /mnt/mfs/statgen/containers/twas_latest.sif   --job_size 1  -J 6 -q csg -c /mnt/mfs/statgen/pbs_template/csg.yml -s build &amp;</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="analysis/Alz_specific_gene_analysis.html"><strong>Alz specific gene analysis</strong></a><br>
 &nbsp; &nbsp;A recent research on Alzheimer disease at 2019 identified 198 unique genes of interest from both table 1 and supplementary table 13. They are</p>
 
@@ -231,25 +218,7 @@ $(document).ready(function () {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Alz_specific_gene_analysis_Data_generation.html"><strong>Alz specific gene analysis</strong></a><br>
-&nbsp; &nbsp;A recent research on Alzheimer disease at 2019 identified 198 unique genes of interest from both table 1 and supplementary table 13. They are</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Chicago_wgt_compute-Copy1.html"><strong>Chicago wgt compute-Copy1</strong></a><br>
-&nbsp; &nbsp;Chicago Data TWAS</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Data_description.html"><strong>Data description</strong></a><br>
+<p><a href="analysis/ROSMAP_data_description.html"><strong>ROSMAP data description</strong></a><br>
 &nbsp; &nbsp;ROSMAP Data Description</p>
 
 </div>
@@ -258,8 +227,8 @@ $(document).ready(function () {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Diag_of_CV.html"><strong>Diag of CV</strong></a><br>
-&nbsp; &nbsp;library(dplyr)</p>
+<p><a href="analysis/TWAS_comp.html"><strong>Pilot Study: Performance comparison between MV SuSiE and FUSION</strong></a><br>
+&nbsp; &nbsp;After the gene expression weights are estimated via multivariate susie, the accuracy of imputed gene expression for MV SuSiE and FUSION are compared.</p>
 
 </div>
 </div>
@@ -267,59 +236,14 @@ $(document).ready(function () {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/MV_susie_analysis.html"><strong>Load Packages</strong></a><br>
-&nbsp; &nbsp;library(dplyr)</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Pipeline_testing_Rosmap_analysis.html"><strong>Pipeline testing Rosmap analysis</strong></a><br>
-&nbsp; &nbsp;ROSMAP Data TWAS</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/TWAS_comp.html"><strong>TWAS comp</strong></a><br>
-&nbsp; &nbsp;Analysis for presentation</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Training_Testing_imputed_expression.html"><strong>Training and testing for imputed expression</strong></a><br>
-&nbsp; &nbsp;This notebook contains the codes that used to select a training vs testing set and then use the sets to evaluate how good is the prediction.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Whole_Genome_TWAS.html"><strong>Whole Genome TWAS</strong></a><br>
-&nbsp; &nbsp;Whole Genome TWAS w/f fusion and susie</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="analysis/Whole_Genome_prior_estimation.html"><strong>Whole Genome prior estimation</strong></a><br>
-&nbsp; &nbsp;This note book document the steps to generate mixture priors and the analysis of its result</p>
+<p><a href="analysis/pilot_study_TWAS_FUSION.html"><strong>Pilot Study: TWAS/FUSION for Alzheimer risk locus</strong></a><br>
+&nbsp; &nbsp;A recent research on Alzheimer disease at 2019 identified 198 unique genes of interest from both table 1 and supplementary table 13. They are</p>
 
 </div>
 </div>
 </div>
 <hr>
-&copy 2020-2021 Hao Sun & Gao Wang, Department of Neurology, Columbia University
+&copy 2020-2021 Hao Sun, Department of Neurology, Columbia University
 <!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
 
 </div>

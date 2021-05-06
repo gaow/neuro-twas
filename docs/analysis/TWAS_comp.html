@@ -1,5 +1,3 @@
-<p><small>Exported from <a href="http://github.com/hsun3163/jnbinder/blob/fc9a13ce754505566da69049cda5a974af9d3303/analysis/TWAS_comp.ipynb"><code>analysis/TWAS_comp.ipynb</code></a> committed by Hao Sun on Thu May 6 13:19:31 2021 <a href="http://github.com/hsun3163/jnbinder/commit/fc9a13ce754505566da69049cda5a974af9d3303">revision 2, fc9a13c</a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
-<p><small>Exported from <a href="http://github.com/hsun3163/jnbinder/blob/93314c88684ab4704a5db1f03c434d85b038a8f8/analysis/TWAS_comp.ipynb"><code>analysis/TWAS_comp.ipynb</code></a> committed by Gao Wang on Wed May 5 20:26:26 2021 <a href="http://github.com/hsun3163/jnbinder/commit/93314c88684ab4704a5db1f03c434d85b038a8f8">revision 1, 93314c8</a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -220,10 +218,6 @@ body {
 </li>
         
 <li>
-  <a href="../writeup.html">Writeup</a>
-</li>
-        
-<li>
   <a href="../analysis.html">Analysis</a>
 </li>
         
@@ -245,20 +239,14 @@ body {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Analysis-for-presentation">Analysis for presentation<a class="anchor-link" href="#Analysis-for-presentation">&#182;</a></h2>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="TWAS-for-fusion">TWAS for fusion<a class="anchor-link" href="#TWAS-for-fusion">&#182;</a></h2>
+<h1 id="Pilot-Study:-Performance-comparison-between-MV-SuSiE-and-FUSION">Pilot Study: Performance comparison between MV SuSiE and FUSION<a class="anchor-link" href="#Pilot-Study:-Performance-comparison-between-MV-SuSiE-and-FUSION">&#182;</a></h1><p>After the gene expression weights are estimated via multivariate susie, the accuracy of imputed gene expression for MV SuSiE and FUSION are compared.</p>
+
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
@@ -311,48 +299,16 @@ Registered S3 methods overwritten by &#39;ggplot2&#39;:
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">cv_gene</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&quot;/mnt/mfs/statgen/neuro-twas/mv_wg//to_be_cv_rg_ls&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
-<span class="n">k</span> <span class="o">=</span> <span class="n">cv_gene</span><span class="o">$</span><span class="n">`#region`</span>
-</pre></div>
-
-    </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Data-Processing">Data Processing<a class="anchor-link" href="#Data-Processing">&#182;</a></h2>
 </div>
 </div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>Parsed with column specification:
-cols(
-  `#region` = <span class="ansi-red-fg">col_character()</span>,
-  chr = <span class="ansi-green-fg">col_double()</span>,
-  start_position = <span class="ansi-green-fg">col_double()</span>,
-  end_position = <span class="ansi-green-fg">col_double()</span>
-)
-
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">dir</span> <span class="o">=</span> <span class="s">&quot;~/Project/Alz/&quot;</span>
@@ -371,7 +327,6 @@ cols(
         <span class="n">r2</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">result_data_TWAS</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">MODELCV.R2</span><span class="p">)</span><span class="o">%&gt;%</span><span class="n">as.numeric</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">mean</span><span class="p">()),</span>
         <span class="n">pval</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">result_data_TWAS</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">MODELCV.PV</span><span class="p">)</span><span class="o">%&gt;%</span><span class="n">as.numeric</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">mean</span><span class="p">())</span>
 <span class="p">)</span>
-<span class="n">analysis</span><span class="o">$</span><span class="n">result_data_TWAS</span>
 </pre></div>
 
     </div>
@@ -413,140 +368,19 @@ See spec(...) for full column specifications.
 </div>
 </div>
 
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-
-<div class="output_html rendered_html output_subarea ">
-<ol>
-	<li><table>
-<caption>A spec_tbl_df: 10 × 20</caption>
-<thead>
-	<tr><th scope=col>PANEL</th><th scope=col>ID</th><th scope=col>CHR</th><th scope=col>P0</th><th scope=col>P1</th><th scope=col>HSQ</th><th scope=col>BEST.GWAS.ID</th><th scope=col>BEST.GWAS.Z</th><th scope=col>EQTL.ID</th><th scope=col>EQTL.R2</th><th scope=col>EQTL.Z</th><th scope=col>EQTL.GWAS.Z</th><th scope=col>NSNP</th><th scope=col>NWGT</th><th scope=col>MODEL</th><th scope=col>MODELCV.R2</th><th scope=col>MODELCV.PV</th><th scope=col>TWAS.Z</th><th scope=col>TWAS.P</th><th scope=col>TWAS.P.Adj</th></tr>
-	<tr><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
-</thead>
-<tbody>
-	<tr><td>NA</td><td>ENSG00000103642</td><td>15</td><td>63121833</td><td>63142061</td><td>0.0679</td><td>15:63517347_A_G</td><td> 5.21</td><td>15:63408320_A_G</td><td> 0.100775</td><td>8.18  </td><td> 2.65 </td><td>1323</td><td> 1  </td><td>top1 </td><td>0.100</td><td>7.795455e-03</td><td> 2.65  </td><td>0.00817 </td><td>2.502063e-02</td></tr>
-	<tr><td>NA</td><td>ENSG00000103510</td><td>16</td><td>31114489</td><td>31131393</td><td>0.0822</td><td>16:31133100_A_G</td><td>-5.5 </td><td>16:31149142_A_G</td><td>0.0818   </td><td> 7.79 </td><td>-4.57 </td><td>638 </td><td>  1 </td><td>top1 </td><td>0.082</td><td>1.528800e-02</td><td>-4.57  </td><td>4.79e-06</td><td>3.703000e-05</td></tr>
-	<tr><td>NA</td><td>ENSG00000178226</td><td>16</td><td>31138926</td><td>31150083</td><td>0.1212</td><td>16:31133100_A_G</td><td>-5.5 </td><td>16:31154358_A_G</td><td>0.1225   </td><td> 9.08 </td><td>-5.31 </td><td>637 </td><td>  1 </td><td>top1 </td><td>0.120</td><td>1.758235e-03</td><td>-5.31  </td><td>1.09e-07</td><td>1.254400e-06</td></tr>
-	<tr><td>NA</td><td>ENSG00000196118</td><td>16</td><td>30757423</td><td>30762221</td><td>0.1033</td><td>16:31133100_A_G</td><td>-5.5 </td><td>16:30746822_A_C</td><td>0.1305   </td><td>-9.66 </td><td>-4.11 </td><td>466 </td><td>466 </td><td>blup </td><td>0.130</td><td>3.094737e-03</td><td> 3.69  </td><td>2.28e-04</td><td>1.241333e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000108559</td><td>17</td><td>5360963 </td><td>5419676 </td><td>0.0853</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:5288018_A_G </td><td>0.0870   </td><td> -8.65</td><td> 2.666</td><td>1717</td><td> 1  </td><td>top1 </td><td>0.087</td><td>2.903704e-02</td><td>-2.666 </td><td>0.00768 </td><td>2.502063e-02</td></tr>
-	<tr><td>NA</td><td>ENSG00000167840</td><td>17</td><td>5105541 </td><td>5123116 </td><td>0.2440</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:5154016_A_G </td><td>0.1409   </td><td>  9.96</td><td>-1.960</td><td>1542</td><td>23  </td><td>enet </td><td>0.160</td><td>7.043750e-04</td><td>-3.112 </td><td>0.00186 </td><td>7.595000e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000073008</td><td>19</td><td>44643798</td><td>44666162</td><td>0.1509</td><td>19:45165912_A_C</td><td>10.5 </td><td>19:45146402_C_T</td><td>0.0900   </td><td>  8.23</td><td>-7.51 </td><td>1412</td><td>  25</td><td>enet </td><td>0.096</td><td>1.163750e-02</td><td>-8.19  </td><td>2.57e-16</td><td>1.259300e-14</td></tr>
-	<tr><td>NA</td><td>ENSG00000099817</td><td>19</td><td>1086574 </td><td>1095380 </td><td>0.2398</td><td>19:1050874_A_G </td><td>-6.2 </td><td>19:1090803_A_G </td><td>0.1534   </td><td>-10.20</td><td>-3.61 </td><td>1746</td><td>1746</td><td>bslmm</td><td>0.160</td><td>7.000000e-04</td><td> 3.23  </td><td>1.26e-03</td><td>5.612727e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000104892</td><td>19</td><td>45333434</td><td>45351520</td><td>0.3338</td><td>19:45411941_C_T</td><td>52.5 </td><td>19:45836525_C_T</td><td>0.2129   </td><td> 12.21</td><td>-4.78 </td><td>1511</td><td>   5</td><td>lasso</td><td>0.290</td><td>3.570000e-07</td><td>-2.70  </td><td>6.95e-03</td><td>2.432500e-02</td></tr>
-	<tr><td>NA</td><td>ENSG00000196126</td><td>6 </td><td>32578769</td><td>32589848</td><td>0.3190</td><td>6:32583813_A_G </td><td>-6.49</td><td>6:32568595_C_T </td><td> 0.43933 </td><td>-17.50</td><td>-2.387</td><td>7456</td><td>  19</td><td>lasso</td><td>0.530</td><td>1.796667e-18</td><td> 3.2460</td><td>1.17e-03</td><td>5.612727e-03</td></tr>
-</tbody>
-</table>
-</li>
-	<li><table>
-<caption>A spec_tbl_df: 16 × 20</caption>
-<thead>
-	<tr><th scope=col>PANEL</th><th scope=col>ID</th><th scope=col>CHR</th><th scope=col>P0</th><th scope=col>P1</th><th scope=col>HSQ</th><th scope=col>BEST.GWAS.ID</th><th scope=col>BEST.GWAS.Z</th><th scope=col>EQTL.ID</th><th scope=col>EQTL.R2</th><th scope=col>EQTL.Z</th><th scope=col>EQTL.GWAS.Z</th><th scope=col>NSNP</th><th scope=col>NWGT</th><th scope=col>MODEL</th><th scope=col>MODELCV.R2</th><th scope=col>MODELCV.PV</th><th scope=col>TWAS.Z</th><th scope=col>TWAS.P</th><th scope=col>TWAS.P.Adj</th></tr>
-	<tr><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
-</thead>
-<tbody>
-	<tr><td>NA</td><td>ENSG00000203710</td><td>1 </td><td>207496147</td><td>207641765</td><td>0.2055</td><td>1:207786828_A_G</td><td>-8.88</td><td>1:207747296_A_G</td><td>0.1361 </td><td>-11.06</td><td>-8.62  </td><td>1168</td><td>27  </td><td>enet </td><td>0.160</td><td>6.428571e-05</td><td> 8.60  </td><td>8.32e-18</td><td>2.080000e-16</td></tr>
-	<tr><td>NA</td><td>ENSG00000103510</td><td>16</td><td>31114489 </td><td>31131393 </td><td>0.0704</td><td>16:31133100_A_G</td><td>-5.5 </td><td>16:31131174_A_G</td><td>0.0368 </td><td>-6.82 </td><td> 4.66  </td><td>638 </td><td> 25 </td><td>enet </td><td>0.068</td><td>1.521739e-02</td><td>-3.60  </td><td>3.18e-04</td><td>1.445455e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000103549</td><td>16</td><td>30761745 </td><td>30776307 </td><td>0.0526</td><td>16:31133100_A_G</td><td>-5.5 </td><td>16:30730679_A_G</td><td>0.0506 </td><td> 7.10 </td><td>-4.07  </td><td>480 </td><td>480 </td><td>bslmm</td><td>0.049</td><td>2.500000e-02</td><td>-3.49  </td><td>4.86e-04</td><td>1.869231e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000196118</td><td>16</td><td>30757423 </td><td>30762221 </td><td>0.0411</td><td>16:31133100_A_G</td><td>-5.5 </td><td>16:30730679_A_G</td><td>0.0481 </td><td>-7.21 </td><td>-4.07  </td><td>466 </td><td>466 </td><td>blup </td><td>0.048</td><td>4.428571e-02</td><td> 4.61  </td><td>3.99e-06</td><td>3.325000e-05</td></tr>
-	<tr><td>NA</td><td>ENSG00000029725</td><td>17</td><td>5282265  </td><td>5386340  </td><td>0.0613</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:5290703_A_G </td><td>0.0496 </td><td> -6.76</td><td> 2.52  </td><td>1772</td><td>  1 </td><td>top1 </td><td>0.050</td><td>3.529412e-02</td><td>-2.520 </td><td>1.17e-02</td><td>2.925000e-02</td></tr>
-	<tr><td>NA</td><td>ENSG00000108556</td><td>17</td><td>4897771  </td><td>4934438  </td><td>0.1764</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:4802317_C_T </td><td>0.2086 </td><td> 12.86</td><td> 4.36  </td><td>1493</td><td> 13 </td><td>enet </td><td>0.220</td><td>3.846154e-05</td><td> 4.427 </td><td>9.56e-06</td><td>5.975000e-05</td></tr>
-	<tr><td>NA</td><td>ENSG00000108559</td><td>17</td><td>5360963  </td><td>5419676  </td><td>0.1087</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:5278307_A_G </td><td>0.1079 </td><td> -9.98</td><td> 2.46  </td><td>1717</td><td>  1 </td><td>top1 </td><td>0.110</td><td>9.722222e-04</td><td>-2.456 </td><td>1.40e-02</td><td>3.333333e-02</td></tr>
-	<tr><td>NA</td><td>ENSG00000167840</td><td>17</td><td>5105541  </td><td>5123116  </td><td>0.2382</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:5154016_A_G </td><td>0.1570 </td><td> 11.28</td><td>-1.96  </td><td>1542</td><td> 14 </td><td>lasso</td><td>0.170</td><td>2.090909e-05</td><td>-3.059 </td><td>2.22e-03</td><td>6.529412e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000007047</td><td>19</td><td>45079288 </td><td>45305284 </td><td>0.1229</td><td>19:45411941_C_T</td><td>52.5 </td><td>19:45796420_A_G</td><td>0.09888</td><td> -9.15</td><td> -3.302</td><td>1656</td><td> 1  </td><td>top1 </td><td>0.099</td><td>2.894737e-03</td><td> 3.302 </td><td>9.58e-04</td><td>3.193333e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000065268</td><td>19</td><td>984332   </td><td>998438   </td><td>0.0858</td><td>19:1050874_A_G </td><td>-6.2 </td><td>19:986515_C_T  </td><td>0.05207</td><td> -7.24</td><td>  2.419</td><td>1907</td><td> 2  </td><td>lasso</td><td>0.053</td><td>2.413793e-02</td><td>-2.274 </td><td>2.30e-02</td><td>4.916667e-02</td></tr>
-	<tr><td>NA</td><td>ENSG00000073008</td><td>19</td><td>44643798 </td><td>44666162 </td><td>0.1121</td><td>19:45165912_A_C</td><td>10.5 </td><td>19:45147719_G_T</td><td>0.06266</td><td>  7.73</td><td> -7.573</td><td>1412</td><td> 1  </td><td>top1 </td><td>0.063</td><td>1.796296e-02</td><td>-7.573 </td><td>3.66e-14</td><td>6.100000e-13</td></tr>
-	<tr><td>NA</td><td>ENSG00000099817</td><td>19</td><td>1086574  </td><td>1095380  </td><td>0.1426</td><td>19:1050874_A_G </td><td>-6.2 </td><td>19:1090803_A_G </td><td>0.14416</td><td>-10.98</td><td> -3.614</td><td>1746</td><td>16  </td><td>enet </td><td>0.140</td><td>1.500000e-04</td><td> 3.356 </td><td>7.92e-04</td><td>2.828571e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000130204</td><td>19</td><td>44890569 </td><td>44903689 </td><td>0.0674</td><td>19:45394969_G_T</td><td>52.1 </td><td>19:45396899_C_T</td><td>0.05587</td><td> -7.04</td><td>-18.141</td><td>1370</td><td> 1  </td><td>top1 </td><td>0.056</td><td>2.321429e-02</td><td>18.141 </td><td>1.51e-73</td><td>7.550000e-72</td></tr>
-	<tr><td>NA</td><td>ENSG00000196126</td><td>6 </td><td>32578769 </td><td>32589848 </td><td>0.4188</td><td>6:32583813_A_G </td><td>-6.49</td><td>6:32538419_A_G </td><td>0.45155</td><td>-20.06</td><td>-1.739 </td><td>7456</td><td>  48</td><td>enet </td><td>0.560</td><td>5.500000e-24</td><td> 3.4889</td><td>4.85e-04</td><td>1.869231e-03</td></tr>
-	<tr><td>NA</td><td>ENSG00000204267</td><td>6 </td><td>32821833 </td><td>32838770 </td><td>0.1294</td><td>6:32583813_A_G </td><td>-6.49</td><td>6:32787570_C_T </td><td>0.07552</td><td>  8.79</td><td> 4.230 </td><td>7337</td><td>  26</td><td>enet </td><td>0.095</td><td>5.714286e-03</td><td> 4.5709</td><td>4.86e-06</td><td>3.471429e-05</td></tr>
-	<tr><td>NA</td><td>ENSG00000147419</td><td>8 </td><td>27733316 </td><td>27772653 </td><td>0.0853</td><td>8:27464929_A_G </td><td>9.05 </td><td>8:27621127_C_T </td><td>0.0928 </td><td>-9.22 </td><td>2.263  </td><td>1469</td><td>1   </td><td>top1 </td><td>0.093</td><td>1.227273e-02</td><td>-2.263 </td><td>0.0236  </td><td>4.916667e-02</td></tr>
-</tbody>
-</table>
-</li>
-	<li><table>
-<caption>A spec_tbl_df: 9 × 20</caption>
-<thead>
-	<tr><th scope=col>PANEL</th><th scope=col>ID</th><th scope=col>CHR</th><th scope=col>P0</th><th scope=col>P1</th><th scope=col>HSQ</th><th scope=col>BEST.GWAS.ID</th><th scope=col>BEST.GWAS.Z</th><th scope=col>EQTL.ID</th><th scope=col>EQTL.R2</th><th scope=col>EQTL.Z</th><th scope=col>EQTL.GWAS.Z</th><th scope=col>NSNP</th><th scope=col>NWGT</th><th scope=col>MODEL</th><th scope=col>MODELCV.R2</th><th scope=col>MODELCV.PV</th><th scope=col>TWAS.Z</th><th scope=col>TWAS.P</th><th scope=col>TWAS.P.Adj</th></tr>
-	<tr><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
-</thead>
-<tbody>
-	<tr><td>NA</td><td>ENSG00000103642</td><td>15</td><td>63121833</td><td>63142061</td><td>0.12  </td><td>15:63517347_A_G</td><td>5.21 </td><td>15:63408179_A_C</td><td>0.0842   </td><td>6.96  </td><td>3.68  </td><td>1323</td><td>9   </td><td>enet </td><td>0.089</td><td>4.461538e-02</td><td>2.91  </td><td>0.00356 </td><td>0.011866667</td></tr>
-	<tr><td>NA</td><td>ENSG00000103510</td><td>16</td><td>31114489</td><td>31131393</td><td>0.0751</td><td>16:31133100_A_G</td><td>-5.5 </td><td>16:31042299_A_G</td><td> 0.07663 </td><td>-6.58 </td><td> 4.586</td><td>638 </td><td>638 </td><td>bslmm</td><td>0.076</td><td>4.461538e-02</td><td>-4.491</td><td>7.10e-06</td><td>0.000056800</td></tr>
-	<tr><td>NA</td><td>ENSG00000108556</td><td>17</td><td>4897771 </td><td>4934438 </td><td>0.1775</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:4805389_A_G </td><td> 0.21922 </td><td> 10.86</td><td> 4.295</td><td>1493</td><td>  12</td><td>enet </td><td>0.210</td><td>4.457143e-03</td><td> 4.442</td><td>8.91e-06</td><td>0.000059400</td></tr>
-	<tr><td>NA</td><td>ENSG00000108559</td><td>17</td><td>5360963 </td><td>5419676 </td><td>0.0799</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:5288018_A_G </td><td> 0.11490 </td><td> -7.80</td><td> 2.666</td><td>1717</td><td>   1</td><td>top1 </td><td>0.110</td><td>2.369231e-02</td><td>-2.666</td><td>7.68e-03</td><td>0.023630769</td></tr>
-	<tr><td>NA</td><td>ENSG00000167840</td><td>17</td><td>5105541 </td><td>5123116 </td><td>0.1159</td><td>17:5138980_A_G </td><td>6.15 </td><td>17:5154016_A_G </td><td> 0.10088 </td><td>  7.07</td><td>-1.960</td><td>1542</td><td>   4</td><td>lasso</td><td>0.100</td><td>4.222222e-02</td><td>-3.096</td><td>1.96e-03</td><td>0.007127273</td></tr>
-	<tr><td>NA</td><td>ENSG00000065268</td><td>19</td><td>984332  </td><td>998438  </td><td>0.257 </td><td>19:1050874_A_G </td><td>-6.2 </td><td>19:990702_C_T  </td><td>0.2129   </td><td>-10.55</td><td> 2.02 </td><td>1907</td><td>  11</td><td>enet </td><td>0.220</td><td>4.333333e-04</td><td>-2.42 </td><td>1.56e-02</td><td>0.044571429</td></tr>
-	<tr><td>NA</td><td>ENSG00000073008</td><td>19</td><td>44643798</td><td>44666162</td><td>0.104 </td><td>19:45165912_A_C</td><td>10.5 </td><td>19:45147719_G_T</td><td>0.0639   </td><td>  6.33</td><td>-7.57 </td><td>1412</td><td>1412</td><td>bslmm</td><td>0.064</td><td>4.461538e-02</td><td>-5.92 </td><td>3.15e-09</td><td>0.000000063</td></tr>
-	<tr><td>NA</td><td>ENSG00000099817</td><td>19</td><td>1086574 </td><td>1095380 </td><td>0.151 </td><td>19:1050874_A_G </td><td>-6.2 </td><td>19:1090803_A_G </td><td>0.0912   </td><td> -6.91</td><td>-3.61 </td><td>1746</td><td>   1</td><td>top1 </td><td>0.091</td><td>3.529412e-02</td><td> 3.61 </td><td>3.01e-04</td><td>0.001337778</td></tr>
-	<tr><td>NA</td><td>ENSG00000196126</td><td>6 </td><td>32578769</td><td>32589848</td><td>0.4180</td><td>6:32583813_A_G </td><td>-6.49</td><td>6:32538419_A_G </td><td> 0.520025</td><td>-16.72</td><td>-1.739</td><td>7456</td><td>  47</td><td>enet </td><td>0.610</td><td>5.000000e-18</td><td> 3.768</td><td>0.000165</td><td>0.000825000</td></tr>
-</tbody>
-</table>
-</li>
-</ol>
-
-</div>
-
-</div>
-
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span>
 </pre></div>
 
     </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-
-<div class="output_html rendered_html output_subarea ">
-<ol>
-	<li><style>
-.list-inline {list-style: none; margin:0; padding: 0}
-.list-inline>li {display: inline-block}
-.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
-</style>
-<ol class=list-inline><li>'ENSG00000158869'</li><li>'ENSG00000203710'</li><li>'ENSG00000110079'</li><li>'ENSG00000140090'</li><li>'ENSG00000103642'</li><li>'ENSG00000128923'</li><li>'ENSG00000140416'</li><li>'ENSG00000103510'</li><li>'ENSG00000178226'</li><li>'ENSG00000196118'</li><li>'ENSG00000108509'</li><li>'ENSG00000108523'</li><li>'ENSG00000108559'</li><li>'ENSG00000129204'</li><li>'ENSG00000161929'</li><li>'ENSG00000167840'</li><li>'ENSG00000196388'</li><li>'ENSG00000264538'</li><li>'ENSG00000064666'</li><li>'ENSG00000073008'</li><li>'ENSG00000099817'</li><li>'ENSG00000104892'</li><li>'ENSG00000179846'</li><li>'ENSG00000189114'</li><li>'ENSG00000095970'</li><li>'ENSG00000179344'</li><li>'ENSG00000196126'</li><li>'ENSG00000196735'</li><li>'ENSG00000198087'</li><li>'ENSG00000198502'</li><li>'ENSG00000204267'</li><li>'ENSG00000204301'</li><li>'ENSG00000204516'</li><li>'ENSG00000223501'</li><li>'ENSG00000224389'</li><li>'ENSG00000240065'</li><li>'ENSG00000244731'</li><li>'ENSG00000106261'</li><li>'ENSG00000121716'</li><li>'ENSG00000146830'</li><li>'ENSG00000146834'</li><li>'ENSG00000166529'</li><li>'ENSG00000174469'</li><li>'ENSG00000188186'</li><li>'ENSG00000213214'</li><li>'ENSG00000214309'</li><li>'ENSG00000243896'</li><li>'ENSG00000120915'</li><li>'ENSG00000147419'</li></ol>
-</li>
-	<li><style>
-.list-inline {list-style: none; margin:0; padding: 0}
-.list-inline>li {display: inline-block}
-.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
-</style>
-<ol class=list-inline><li>'ENSG00000158864'</li><li>'ENSG00000203710'</li><li>'ENSG00000134463'</li><li>'ENSG00000110079'</li><li>'ENSG00000103642'</li><li>'ENSG00000140416'</li><li>'ENSG00000103496'</li><li>'ENSG00000103510'</li><li>'ENSG00000103549'</li><li>'ENSG00000167394'</li><li>'ENSG00000196118'</li><li>'ENSG00000029725'</li><li>'ENSG00000108556'</li><li>'ENSG00000108559'</li><li>'ENSG00000129204'</li><li>'ENSG00000161929'</li><li>'ENSG00000167840'</li><li>'ENSG00000196388'</li><li>'ENSG00000264538'</li><li>'ENSG00000007047'</li><li>'ENSG00000064666'</li><li>'ENSG00000065268'</li><li>'ENSG00000073008'</li><li>'ENSG00000099817'</li><li>'ENSG00000130204'</li><li>'ENSG00000142252'</li><li>'ENSG00000180448'</li><li>'ENSG00000189114'</li><li>'ENSG00000179344'</li><li>'ENSG00000196126'</li><li>'ENSG00000196735'</li><li>'ENSG00000198502'</li><li>'ENSG00000204264'</li><li>'ENSG00000204267'</li><li>'ENSG00000204301'</li><li>'ENSG00000204516'</li><li>'ENSG00000224389'</li><li>'ENSG00000240065'</li><li>'ENSG00000244731'</li><li>'ENSG00000078487'</li><li>'ENSG00000085514'</li><li>'ENSG00000121716'</li><li>'ENSG00000146833'</li><li>'ENSG00000146834'</li><li>'ENSG00000160862'</li><li>'ENSG00000166529'</li><li>'ENSG00000213420'</li><li>'ENSG00000214309'</li><li>'ENSG00000147419'</li><li>'ENSG00000168077'</li></ol>
-</li>
-	<li><style>
-.list-inline {list-style: none; margin:0; padding: 0}
-.list-inline>li {display: inline-block}
-.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
-</style>
-<ol class=list-inline><li>'ENSG00000203710'</li><li>'ENSG00000134463'</li><li>'ENSG00000103642'</li><li>'ENSG00000103496'</li><li>'ENSG00000103510'</li><li>'ENSG00000103549'</li><li>'ENSG00000151006'</li><li>'ENSG00000196118'</li><li>'ENSG00000029725'</li><li>'ENSG00000108523'</li><li>'ENSG00000108556'</li><li>'ENSG00000108559'</li><li>'ENSG00000129204'</li><li>'ENSG00000161929'</li><li>'ENSG00000167840'</li><li>'ENSG00000196388'</li><li>'ENSG00000264538'</li><li>'ENSG00000064666'</li><li>'ENSG00000065268'</li><li>'ENSG00000073008'</li><li>'ENSG00000099817'</li><li>'ENSG00000180448'</li><li>'ENSG00000196126'</li><li>'ENSG00000196735'</li><li>'ENSG00000198087'</li><li>'ENSG00000198502'</li><li>'ENSG00000204267'</li><li>'ENSG00000204301'</li><li>'ENSG00000204304'</li><li>'ENSG00000204516'</li><li>'ENSG00000224389'</li><li>'ENSG00000240065'</li><li>'ENSG00000085514'</li><li>'ENSG00000121716'</li><li>'ENSG00000146834'</li><li>'ENSG00000160862'</li><li>'ENSG00000166529'</li><li>'ENSG00000214309'</li><li>'ENSG00000221838'</li><li>'ENSG00000147419'</li></ol>
-</li>
-</ol>
-
-</div>
-
-</div>
-
 </div>
 </div>
 
@@ -557,43 +391,6 @@ See spec(...) for full column specifications.
 <h2 id="TWAS-for-mv-susie">TWAS for mv susie<a class="anchor-link" href="#TWAS-for-mv-susie">&#182;</a></h2>
 </div>
 </div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">sos</span> <span class="n">run</span> <span class="n">twas_fusion.ipynb</span> <span class="n">association_test</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">gwas_sumstat</span>  <span class="n">\</span>
-  <span class="o">--</span><span class="n">molecular</span><span class="o">-</span><span class="n">pheno</span> <span class="n">./gene_exp_file.txt</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">wd</span> <span class="n">./</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">genotype_list</span> <span class="n">./genptype_file_LDREF</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">region_list</span> <span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">haosun</span><span class="o">/</span><span class="n">Documents</span><span class="o">/</span><span class="n">WG_Reasearch_Assisstant</span><span class="o">/</span><span class="n">Fusion</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">Updated</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">region_list.txt</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">region_name</span> <span class="m">1</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">data_start</span> <span class="m">5</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">output_path</span> <span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">haosun</span><span class="o">/</span><span class="n">Documents</span><span class="o">/</span><span class="n">WG_Reasearch_Assisstant</span><span class="o">/</span><span class="n">Fusion</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">Updated</span><span class="o">/</span><span class="n">At_output</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">window</span> <span class="m">500000</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">model</span> <span class="n">blup</span> <span class="n">lasso</span> <span class="n">top1</span> <span class="n">enet</span> <span class="n">\</span>
-  <span class="o">--</span><span class="n">container</span> <span class="n">gaow</span><span class="o">/</span><span class="n">twas</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
@@ -1101,8 +898,8 @@ Traceback:
 
 </div>
 <hr>
-&copy 2020-2021 Hao Sun & Gao Wang, Department of Neurology, Columbia University
-<p><small>Exported from <a href="http://github.com/hsun3163/jnbinder/blob/93314c88684ab4704a5db1f03c434d85b038a8f8/analysis/TWAS_comp.ipynb"><code>analysis/TWAS_comp.ipynb</code></a> committed by Gao Wang on Thu May 6 00:26:26 2021 <a href="http://github.com/hsun3163/jnbinder/commit/93314c88684ab4704a5db1f03c434d85b038a8f8">revision 1, 93314c8</a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+&copy 2020-2021 Hao Sun, Department of Neurology, Columbia University
+<p><small>Exported from <a href="http://github.com/hsun3163/jnbinder/blob/fc9a13ce754505566da69049cda5a974af9d3303/analysis/TWAS_comp.ipynb"><code>analysis/TWAS_comp.ipynb</code></a> committed by Hao Sun on Thu May 6 17:19:31 2021 <a href="http://github.com/hsun3163/jnbinder/commit/fc9a13ce754505566da69049cda5a974af9d3303">revision 2, fc9a13c</a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
 </div>
 </div>
 </body>
