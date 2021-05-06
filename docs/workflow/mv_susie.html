@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ipynb_website:version" content="0.9.7" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" type="text/css" href="../css/jt.css">
+
+<link rel="stylesheet" type="text/css" href="../css/toc2.css">
+
+<link href="../site_libs/jqueryui-1.11.4/jquery-ui.css">
+<link rel="stylesheet" href="../site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="../site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+
+<link rel="stylesheet"
+      href="../site_libs/highlightjs/null.min.css"
+      type="text/css" />
+
+<script src="../site_libs/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+<script src="../js/doc_toc.js"></script>
+<script src="../js/docs.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+        },
+        "HTML-CSS": {
+            preferredFont: "TeX",
+            availableFonts: ["TeX"],
+            styles: {
+                scale: 110,
+                ".MathJax_Display": {
+                    "font-size": "110%",
+                }
+            }
+        }
+    });
+</script>
+<script>
+function filterDataFrame(id) {
+    var input = document.getElementById("search_" + id);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("dataframe_" + id);
+    var tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (var i = 1; i < tr.length; i++) {
+        for (var j = 0; j < tr[i].cells.length; ++j) {
+            var matched = false;
+            if (tr[i].cells[j].innerHTML.toUpperCase().indexOf(filter) != -1) {
+                tr[i].style.display = "";
+                matched = true
+                break;
+            }
+            if (!matched)
+                tr[i].style.display = "none";
+        }
+    }
+}
+function sortDataFrame(id, n, dtype) {
+    var table = document.getElementById("dataframe_" + id);
+    var tb = table.tBodies[0]; // use `<tbody>` to ignore `<thead>` and `<tfoot>` rows
+    var tr = Array.prototype.slice.call(tb.rows, 0); // put rows into array
+    if (dtype === 'numeric') {
+        var fn = function(a, b) { 
+            return parseFloat(a.cells[n].textContent) <= parseFloat(b.cells[n].textContent) ? -1 : 1;
+        }
+    } else {
+        var fn = function(a, b) {
+            var c = a.cells[n].textContent.trim().localeCompare(b.cells[n].textContent.trim()); 
+            return c > 0 ? 1 : (c < 0 ? -1 : 0) }
+    }
+    var isSorted = function(array, fn) {
+        if (array.length < 2)
+            return 1;
+        var direction = fn(array[0], array[1]); 
+        for (var i = 1; i < array.length - 1; ++i) {
+            var d = fn(array[i], array[i+1]);
+            if (d == 0)
+                continue;
+            else if (direction == 0)
+                direction = d;
+            else if (direction != d)
+                return 0;
+            }
+        return direction;
+    }
+    var sorted = isSorted(tr, fn);
+    if (sorted == 1 || sorted == -1) {
+        // if sorted already, reverse it
+        for(var i = tr.length - 1; i >= 0; --i)
+            tb.appendChild(tr[i]); // append each row in order
+    } else {
+        tr = tr.sort(fn);
+        for(var i = 0; i < tr.length; ++i)
+            tb.appendChild(tr[i]); // append each row in order
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function(){
+            var cfg={'threshold':3,     // depth of toc (number of levels)
+             'number_sections': false,
+             'toc_cell': false,          // useless here
+             'toc_window_display': true, // display the toc window
+             "toc_section_display": "block", // display toc contents in the window
+             'sideBar':true,       // sidebar or floating window
+             'navigate_menu':false       // navigation menu (only in liveNotebook -- do not change)
+            }
+            var st={};                  // some variables used in the script
+            st.rendering_toc_cell = false;
+            st.config_loaded = false;
+            st.extension_initialized=false;
+            st.nbcontainer_marginleft = $('#notebook-container').css('margin-left')
+            st.nbcontainer_marginright = $('#notebook-container').css('margin-right')
+            st.nbcontainer_width = $('#notebook-container').css('width')
+            st.oldTocHeight = undefined
+            st.cell_toc = undefined;
+            st.toc_index=0;
+            // fire the main function with these parameters
+            table_of_contents(cfg, st);
+            var file=workflowDict[$("h1:first").attr("id")];
+            $("#toc-level0 a").css("color","#126dce");
+            $('a[href="#'+$("h1:first").attr("id")+'"]').hide()
+            var docs=workflowArray;
+            var docs_map=workflowArrayMap;
+            var pos=workflowArray.indexOf(file);
+            for (var a=pos;a>=0;a--){
+                  $('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>').insertBefore("#toc-level0 li:eq(0)");
+            }
+            $('a[href="'+file+'.html'+'"]').css("color","#126dce");
+            for (var a=pos+1;a<docs.length;a++){
+                  $(".toc #toc-level0").append('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>');
+            }
+            // $("#toc-header").hide(); // comment out because it prevents search bar from displaying
+    });
+</script>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+  // mark it active
+  menuAnchor.parent().addClass('active');
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+<div class="container-fluid main-container">
+<!-- tabsets -->
+<script src="../site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+
+
+<title>Multi-tissue brain TWAS</title>
+
+<style type = "text/css">
+body {
+  font-family: "Droid Sans";
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<!-- code folding -->
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">Multi-tissue brain TWAS</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+<li>
+  <a href="../index.html">Overview</a>
+</li>
+        
+<li>
+  <a href="../writeup.html">Writeup</a>
+</li>
+        
+<li>
+  <a href="../analysis.html">Analysis</a>
+</li>
+        
+<li>
+  <a href="../workflow.html">Workflow</a>
+</li>
+        
+      </ul>
+        
+<ul class="nav navbar-nav navbar-right">
+<li>
+   <a href="http://github.com/hsun3163/jnbinder"> <span class="fa fa-github"></span> </a>
+</li>
+</ul>
+        
+      </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="TWAS-multivariate-susie">TWAS multivariate susie<a class="anchor-link" href="#TWAS-multivariate-susie">&#182;</a></h1><p>This notebook implements a TWAS analysis workflow using multivariate susie.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Aim">Aim<a class="anchor-link" href="#Aim">&#182;</a></h2><p>TBD</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Overview-(TBD)">Overview (TBD)<a class="anchor-link" href="#Overview-(TBD)">&#182;</a></h2><p><strong>Objective</strong>: 
+    To Compute the association between expression and SNP in prepare for TWAS analysis via genotype and multiple molecular phenotype</p>
+<p><strong>Background</strong>:
+    SNP can modulate the functional phenotypes both directly and by modulating the expression levels of genes. 
+Therefore, the integration of expression measurements and a larger scale GWAS summary association statistics will help identify the genes associated with the targeted complex traits.</p>
+<p><strong>Significance</strong>:
+    By applying this method, new candidate genes whose expression level is significantly associated with complex traits can be used in prediction without actually going through the expensive gene expression measurement process. As a relatively small set of gene expression and genotyping, data can be used to impute the expression for a much larger set of phenotyped individuals from their SNP genotype data.</p>
+<p><strong>Method</strong>:
+    The imputed expression can then be viewed as a linear model of genotypes with _weights based on the correlation between SNPs and gene expression__ in the training data while accounting for linkage disequilibrium (LD) SNPs. We then correlated the imputed gene expression to the trait to perform a transcriptome-wide association study (TWAS) and identify significant expression-trait associations.</p>
+<p>The weights are computed via multivariate susies, the accuracy of such weights are computed via by default 100 times five fold cross validation.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Pre-requisites">Pre-requisites<a class="anchor-link" href="#Pre-requisites">&#182;</a></h2><p>We provide a container image <code>docker://gaow/twas</code> that contains all software needed to run the pipeline. If you would like to configure it by yourself, please make sure you install the following software before running this notebook:</p>
+<ul>
+<li>tidyverse</li>
+<li>PLINK</li>
+<li>R package mashr</li>
+<li>R package mmbr</li>
+<li>Output from the following univatiate analysis pipeline: twas_fusion_susie.ipynb</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Input-and-Output(TBD)">Input and Output(TBD)<a class="anchor-link" href="#Input-and-Output(TBD)">&#182;</a></h1><h2 id="Input">Input<a class="anchor-link" href="#Input">&#182;</a></h2><p>This workflow is design to performed based on the output of the twas_fusion_susie.ipynb pipeline. If other input are used. Please followed the following instructions.</p>
+<ul>
+<li><code>molecular-pheno</code>, a plink trio per regions that are the output from the second steps of twas_fusion_susie.ipynb output. For each region, at least two sets of molecular-pheno are needed. For univariate analysis, please refer to the univariate sections of twas_fusion_susie.ipynb. The plink trio shall be named as following <code>{name_prefix}.{region}</code>.bed/fam/bim , as shown in the following example.</li>
+</ul>
+
+<pre><code>geneTpmResidualsAgeGenderAdj_rename.ENSG00000196126.bed  
+geneTpmResidualsAgeGenderAdj_rename.ENSG00000196126.bim  
+geneTpmResidualsAgeGenderAdj_rename.ENSG00000196126.fam</code></pre>
+<ul>
+<li><code>--molecular-pheno-dir</code> The file shall contains a colnames "#molc_pheno" which documenting all the paths to the diretory of twas_fusion_susie.ipynb output,as shown in the following example.</li>
+</ul>
+
+<pre><code>#molc_pheno
+./AC
+./PCC"</code></pre>
+
+<pre><code>If alternate input are used, all the molecular-pheno, in the form of plink trio, shall be stored in a "cache" directory, and the paths documented in this file shall be directed to the folder above the "cache" directory. 
+
+</code></pre>
+<ul>
+<li><code>--region_list</code> An index text file with a "#region" column documenting the {region} sections for each of the aforementioned plink trio as shown in the following example.</li>
+</ul>
+
+<pre><code>#region
+ENSG00000196126</code></pre>
+<ul>
+<li><p><code>--name-prefix</code> the first part for the file name of each of the plink trio.</p>
+</li>
+<li><p><code>--cv_times</code> the number of times of cross validation to be ran.</p>
+</li>
+</ul>
+<h2 id="Output">Output<a class="anchor-link" href="#Output">&#182;</a></h2><ul>
+<li><p><code>.mv_cv.RData</code> An RData object containing all the susie objects with added hsq/RMSE/R2/Pval metrixs.</p>
+</li>
+<li><p><code>.mv.RData</code> An RData object containing all the susie objects with added hsq, without cross validation</p>
+</li>
+<li><p><code>{name_prefix}.{region}.transformed_XY.RData</code> A collection of Rdata objects stored in the "result" folder under the working diretory, storing the mean imputed and scaled X as well as the scaled Y for each region.</p>
+</li>
+<li><p><code>.mv_wgt.txt</code> A collection of the actual weights that are computed for each genes used to predict the expresion. It works with the scaled X and Y.</p>
+</li>
+<li><p><code>.cv_diag.RData</code> A collection of Rdata objects stored in the "result" folder under the working diretory, storing the simulation dataset and the result for each run.</p>
+</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Command-interface-(TBD)">Command interface (TBD)<a class="anchor-link" href="#Command-interface-(TBD)">&#182;</a></h1>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="o">!</span><span class="n">sos</span> <span class="n">run</span> <span class="n">mv_susie.ipynb</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre><span class="ansi-red-intense-fg">ERROR</span>: <span class="ansi-red-intense-fg">Notebook JSON is invalid: %s</span>
+
+
+usage: sos run mv_susie.ipynb [workflow_name | -t targets] [options] [workflow_options]
+
+
+  workflow_name:        Single or combined workflows defined in this script
+
+
+  targets:              One or more targets to generate
+
+
+  options:              Single-hyphen sos parameters (see &#34;sos run -h&#34; for details)
+
+
+  workflow_options:     Double-hyphen workflow-specific parameters
+
+
+
+
+
+Workflows:
+
+
+  mv_susie
+
+
+  mv_susie_cv
+
+
+
+
+
+Global Workflow Options:
+
+
+  --molecular-pheno-dir VAL (as path, required)
+
+
+                        Path to a list of molecular phenotypes that are to be
+
+
+                        analysised, shall contains a cache file within it.
+
+
+  --region-list VAL (as path, required)
+
+
+                        List of regions that are shared upon all three diretory
+
+
+  --wd VAL (as path, required)
+
+
+                        Path to the work directory of this pipeline,where the
+
+
+                        output will be stored.
+
+
+  --output-path  f&#39;{wd:a}/result&#39;
+
+
+
+
+
+                        Path to store the output folder
+
+
+  --job-size 2 (as int)
+
+
+                        Specify the number of jobs per run.
+
+
+  --container &#39;gaow/twas&#39;
+
+
+                        Container option for software to run the analysis:
+
+
+                        docker or singularity
+
+
+  --name-prefix chr
+
+
+                        name prefix of the molecular_pheno
+
+
+  --impute TRUE
+
+
+                        Whether impute the missing values
+
+
+  --testing-prop 0.2 (as float)
+
+
+                        propotion of samples set into testing, set to zero if no
+
+
+                        cv are needed.
+
+
+  --cv-times 100 (as int)
+
+
+                        Number of training &amp; testing samples used
+
+
+
+
+
+Sections
+
+
+  mv_susie_1, mv_susie_cv_1:
+
+
+  mv_susie_2, mv_susie_cv_2:
+
+
+  mv_susie_cv_3:
+
+
+  mv_susie_3:
+
+
+  mv_susie_cv_4:
+
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Working-example">Working example<a class="anchor-link" href="#Working-example">&#182;</a></h1><p>A minimal working example (MWE) dataset that can be downloaded from the following link, which required a synapse account:
+<a href="https://www.synapse.org/#!Synapse:syn24179065">https://www.synapse.org/#!Synapse:syn24179065</a></p>
+<p>To test the command, please download and decompress the mwe folder, copy this file in it, and run the following command within the mwe folder.</p>
+<p>Alternativly, the options below can be changed based on respective relative paths.</p>
+<p>The time it take to run this MWE shall be around 5 minutes.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="c1"># Test the pipeline with MWE</span>
+
+<span class="n">sos</span> <span class="n">run</span> <span class="n">./mv_susie.ipynb</span> <span class="n">mv_susie_cv</span>  <span class="n">\</span>
+<span class="o">--</span><span class="n">molecular_pheno_dir</span> <span class="s">&quot;molecular_phenotype_list&quot;</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">region_list</span> <span class="n">region_list</span>  <span class="n">\</span>
+<span class="o">--</span><span class="n">wd</span> <span class="n">./</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">name_prefix</span> <span class="s">&quot;geneTpmResidualsAgeGenderAdj_rename&quot;</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">container</span> <span class="o">/</span><span class="n">mnt</span><span class="o">/</span><span class="n">mfs</span><span class="o">/</span><span class="n">statgen</span><span class="o">/</span><span class="n">containers</span><span class="o">/</span><span class="n">twas_latest.sif</span> <span class="o">--</span><span class="n">impute</span> <span class="kc">TRUE</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">cv_times</span> <span class="m">2</span>  <span class="o">&amp;</span>
+
+<span class="c1"># Test with prior</span>
+<span class="n">sos</span> <span class="n">run</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">Workflow</span><span class="o">/</span><span class="n">mv_susie.ipynb</span> <span class="n">mv_susie_cv</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">molecular_pheno_dir</span> <span class="s">&quot;molecular_phenotype_list&quot;</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">region_list</span> <span class="n">region_list</span>  <span class="n">\</span>
+<span class="o">--</span><span class="n">wd</span> <span class="n">./</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">name_prefix</span> <span class="s">&quot;geneTpmResidualsAgeGenderAdj_rename&quot;</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">container</span> <span class="o">/</span><span class="n">mnt</span><span class="o">/</span><span class="n">mfs</span><span class="o">/</span><span class="n">statgen</span><span class="o">/</span><span class="n">containers</span><span class="o">/</span><span class="n">twas_latest.sif</span> <span class="o">--</span><span class="n">impute</span> <span class="kc">TRUE</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">cv_times</span> <span class="m">2</span>  <span class="n">\</span>
+<span class="o">--</span><span class="n">mixture_prior</span> <span class="s">&#39;~/Project/Genome_prior/merge/output/geneTpmResidualsAgeGenderAdj_rename.Both.flash.FL_PC3.teem.UD_ED.rds&#39;</span><span class="o">&amp;</span>
+
+
+<span class="n">sos</span> <span class="n">run</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">Workflow</span><span class="o">/</span><span class="n">mv_susie.ipynb</span> <span class="n">fusion_tf</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">molecular_pheno_dir</span> <span class="s">&quot;molecular_phenotype_list&quot;</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">region_list</span> <span class="n">region_list</span>  <span class="n">\</span>
+<span class="o">--</span><span class="n">wd</span> <span class="n">./</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">name_prefix</span> <span class="s">&quot;geneTpmResidualsAgeGenderAdj_rename&quot;</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">container</span> <span class="o">/</span><span class="n">mnt</span><span class="o">/</span><span class="n">mfs</span><span class="o">/</span><span class="n">statgen</span><span class="o">/</span><span class="n">containers</span><span class="o">/</span><span class="n">twas_latest.sif</span> <span class="o">--</span><span class="n">impute</span> <span class="kc">TRUE</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">cv_times</span> <span class="m">2</span>  <span class="o">&amp;</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_text output_error">
+<pre>
+<span class="ansi-red-intense-fg">File contains parsing errors: 
+	[line  2]: sos run ./mv_susie.ipynb mv_susie_cv --cv_times 2  \
+--molecular_pheno_dir &#34;molecular_phenotype_list&#34;   \
+--region_list region_list  \
+--wd ./   \
+--name_prefix &#34;geneTpmResidualsAgeGenderAdj_rename&#34; \--container /mnt/mfs/statgen/containers/twas_latest.sif --impute TRUE &amp;
+
+Invalid statements: SyntaxError(&#39;invalid syntax&#39;, (&#39;&lt;string&gt;&#39;, 1, 5, &#39;sos run ./mv_susie.ipynb mv_susie_cv --cv_times 2  \\\n&#39;))</span></pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">sos</span> <span class="n">run</span> <span class="n">..</span><span class="o">/</span><span class="n">..</span><span class="o">/</span><span class="n">GIT</span><span class="o">/</span><span class="n">freshcopy</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">Workflow</span><span class="o">/</span><span class="n">mv_susie.ipynb</span> <span class="n">fusion_tf_cv</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">molecular_pheno_dir</span> <span class="n">mole_pheno_ls</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">region_list</span> <span class="n">cand_rgs.txt</span>  <span class="n">\</span>
+<span class="o">--</span><span class="n">wd</span> <span class="n">./</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">name_prefix</span> <span class="s">&quot;geneTpmResidualsAgeGenderAdj_rename&quot;</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">container</span> <span class="n">gaow</span><span class="o">/</span><span class="n">twas</span> <span class="o">--</span><span class="n">impute</span> <span class="kc">TRUE</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">cv_times</span> <span class="m">2</span>  <span class="o">&amp;</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">sos</span> <span class="n">run</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">Workflow</span><span class="o">/</span><span class="n">mv_susie.ipynb</span> <span class="n">fusion_tf</span> <span class="n">\</span> 
+<span class="o">--</span><span class="n">molecular_pheno_dir</span> <span class="s">&quot;molecular_phenotype_list&quot;</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">region_list</span> <span class="n">region_list</span>  <span class="n">\</span>
+<span class="o">--</span><span class="n">wd</span> <span class="n">./</span>   <span class="n">\</span>
+<span class="o">--</span><span class="n">name_prefix</span> <span class="s">&quot;geneTpmResidualsAgeGenderAdj_rename&quot;</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">container</span> <span class="o">/</span><span class="n">mnt</span><span class="o">/</span><span class="n">mfs</span><span class="o">/</span><span class="n">statgen</span><span class="o">/</span><span class="n">containers</span><span class="o">/</span><span class="n">twas_latest.sif</span> <span class="o">--</span><span class="n">impute</span> <span class="kc">TRUE</span> <span class="n">\</span>
+<span class="o">--</span><span class="n">cv_times</span> <span class="m">2</span>  <span class="o">&amp;</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Global-parameter-settings">Global parameter settings<a class="anchor-link" href="#Global-parameter-settings">&#182;</a></h1><p>The section outlined the parameters that can be set in the command interface.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[global]</span>
+<span class="c1"># Path to a list of molecular phenotypes that are to be analysised, shall contains a cache file within it.</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">molecular_pheno_dir</span> <span class="o">=</span> <span class="n">path</span>
+
+<span class="n">parameter</span><span class="o">:</span> <span class="n">region_list</span> <span class="o">=</span> <span class="n">path</span>
+<span class="c1"># Path to the work directory of this pipeline,where the output will be stored.</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">wd</span> <span class="o">=</span> <span class="n">path</span>
+<span class="c1"># Path to store the output folder</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">output_path</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{wd:a}/result&#39;</span>
+<span class="c1"># Specify the number of jobs per run.</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">job_size</span> <span class="o">=</span> <span class="m">2</span>
+<span class="c1"># Container option for software to run the analysis: docker or singularity</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">container</span> <span class="o">=</span> <span class="s">&#39;gaow/twas&#39;</span>
+<span class="c1"># List of regions that are shared upon all three diretory, needs to have ID	CHR	P0	P1, the same way as that of the twas_fusion_susie pipeline.</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">region_list</span> <span class="o">=</span> <span class="n">path</span>
+<span class="c1"># name prefix of the molecular_pheno</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">name_prefix</span> <span class="o">=</span> <span class="s">&quot;chr&quot;</span>
+<span class="c1"># Whether impute the missing values</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">impute</span> <span class="o">=</span> <span class="s">&quot;TRUE&quot;</span>
+<span class="c1"># propotion of samples set into testing, set to zero if no cv are needed.</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">testing_prop</span> <span class="o">=</span> <span class="m">0.2</span>
+<span class="c1"># Number of training &amp; testing samples used</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">cv_times</span> <span class="o">=</span> <span class="m">100</span>
+<span class="c1"># Number of training &amp; testing samples used</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">cv_times</span> <span class="o">=</span> <span class="m">100</span>
+<span class="c1"># Prior: list of prior of cov structure, an RDS file that is a list with an element &quot;U&quot; containing the cov structurer and an element &quot;w&quot; containintg the weights</span>
+<span class="c1"># Preferably the output of wgs_prior_genome pipeline.</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">mixture_prior</span> <span class="o">=</span> <span class="s">&quot;NULL&quot;</span>
+
+
+
+<span class="c1"># Get regions of interest to focus on.</span>
+<span class="n">regions</span> <span class="o">=</span> <span class="nf">[x.strip</span><span class="p">()</span><span class="nf">.split</span><span class="p">()</span> <span class="n">for</span> <span class="n">x</span> <span class="n">in</span> <span class="nf">open</span><span class="p">(</span><span class="n">region_list</span><span class="p">)</span><span class="nf">.readlines</span><span class="p">()</span> <span class="n">if</span> <span class="nf">x.strip</span><span class="p">()</span> <span class="n">and</span> <span class="n">not</span> <span class="nf">x.strip</span><span class="p">()</span><span class="nf">.startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)</span><span class="n">]</span>
+<span class="n">molecular_pheno</span> <span class="o">=</span> <span class="nf">[x.strip</span><span class="p">()</span><span class="nf">.split</span><span class="p">()</span> <span class="n">for</span> <span class="n">x</span> <span class="n">in</span> <span class="nf">open</span><span class="p">(</span><span class="n">molecular_pheno_dir</span><span class="p">)</span><span class="nf">.readlines</span><span class="p">()</span> <span class="n">if</span> <span class="nf">x.strip</span><span class="p">()</span> <span class="n">and</span> <span class="n">not</span> <span class="nf">x.strip</span><span class="p">()</span><span class="nf">.startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)</span><span class="n">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Merge-of-X-(plink)-and-Y-(R)">Merge of X (plink) and Y (R)<a class="anchor-link" href="#Merge-of-X-(plink)-and-Y-(R)">&#182;</a></h2><p>Creat merge list, and then merged based on merged list</p>
+
+</div>
+</div>
+</div>
+input:  molecular_pheno_dir,for_each = "regions"
+output: f'{molecular_pheno[0]}/cache/{name_prefix}.{_regions[0]}',
+        f'{molecular_pheno[1]}/cache/{name_prefix}.{_regions[0]}',
+        f'{molecular_pheno[2]}/cache/{name_prefix}.{_regions[0]}'
+bash: expand = "$[ ]"
+     echo $[_output[0]]
+     echo $[_output[1]]
+     echo $[_output[2]]
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[snp_exclude_1</span><span class="p">,</span><span class="n">mv_susie_1</span><span class="p">,</span><span class="n">mv_susie_cv_1]</span>
+<span class="n">input</span><span class="o">:</span>  <span class="n">molecular_pheno_dir</span><span class="p">,</span> <span class="n">for_each</span> <span class="o">=</span> <span class="s">&quot;regions&quot;</span>
+<span class="n">output</span><span class="o">:</span> <span class="n">f</span><span class="s">&#39;{wd:a}/cache/{name_prefix}.{_regions[0]}.merged_list&#39;</span><span class="p">,</span>
+        <span class="n">f</span><span class="s">&#39;{wd:a}/cache/{name_prefix}.{_regions[0]}.merged.bed&#39;</span><span class="p">,</span>
+        <span class="n">f</span><span class="s">&#39;{wd:a}/cache/{name_prefix}.{_regions[0]}.merged.exp&#39;</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;4h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;6G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_output[0]:bn}&#39;</span>  
+
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span> <span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output[2]}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output[2]}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;plink2R&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;purrr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="n">molecular_pheno</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&quot;$[molecular_pheno_dir]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+    <span class="n">molecular_pheno</span> <span class="o">=</span> <span class="n">molecular_pheno</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span><span class="n">dir</span> <span class="o">=</span> <span class="nf">map_chr</span><span class="p">(</span><span class="n">`#molc_pheno`</span><span class="p">,</span><span class="o">~</span><span class="nf">paste</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">`.x`</span><span class="p">,</span><span class="s">&quot;/cache/$[name_prefix].$[_regions[0]]&quot;</span><span class="p">),</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">)))</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nf">nrow</span><span class="p">(</span><span class="n">molecular_pheno</span><span class="p">)</span>
+    <span class="c1"># For every tissues read plink, and extract the fam df.</span>
+    <span class="n">genos</span> <span class="o">=</span> <span class="nf">tibble</span><span class="p">(</span> <span class="n">i</span> <span class="o">=</span> <span class="m">1</span><span class="o">:</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">genos</span> <span class="o">=</span> <span class="n">genos</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span><span class="n">fam</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="o">~</span><span class="nf">read_plink</span><span class="p">(</span><span class="n">molecular_pheno[[.x</span><span class="p">,</span><span class="m">2</span><span class="n">]]</span><span class="p">)</span><span class="o">$</span><span class="n">fam</span><span class="o">%&gt;%</span><span class="nf">as_tibble</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="nf">paste</span><span class="p">(</span><span class="n">V1</span><span class="p">,</span><span class="s">&quot;:&quot;</span><span class="p">,</span><span class="n">V2</span><span class="p">,</span><span class="n">sep</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">))</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">V6</span><span class="p">)))</span>
+    
+    <span class="c1"># Join two tissues</span>
+    <span class="n">genos_join_phe_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">full_join</span><span class="p">((</span><span class="n">genos</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">fam</span><span class="p">))</span><span class="n">[[1]]</span><span class="p">,(</span><span class="n">genos</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">fam</span><span class="p">))</span><span class="n">[[2]]</span><span class="p">,</span><span class="n">by</span> <span class="o">=</span> <span class="s">&quot;name&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># If there are more tissues, join the rest</span>
+    <span class="nf">if</span><span class="p">(</span><span class="n">n</span> <span class="o">&gt;</span> <span class="m">2</span><span class="p">){</span>
+    <span class="nf">for</span><span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="m">3</span><span class="o">:</span><span class="n">n</span><span class="p">){</span>
+    <span class="n">genos_join_phe_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">full_join</span><span class="p">(</span><span class="n">genos_join_phe_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,(</span><span class="n">genos</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">fam</span><span class="p">))</span><span class="n">[[j]]</span><span class="p">,</span><span class="n">by</span> <span class="o">=</span> <span class="s">&quot;name&quot;</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">genos_join_phe_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="o">%&gt;%</span><span class="n">readr</span><span class="o">::</span><span class="nf">write_delim</span><span class="p">(</span><span class="s">&quot;$[_output[2]]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Create merge list</span>
+    <span class="n">molecular_pheno[2]</span><span class="o">%&gt;%</span><span class="n">readr</span><span class="o">::</span><span class="nf">write_delim</span><span class="p">(</span><span class="s">&quot;$[_output[0]]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">,</span><span class="n">col_names</span><span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
+
+
+<span class="n">bash</span><span class="o">:</span> <span class="n">expand</span> <span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output[1]}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output[1]}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+
+    <span class="c1"># create the merged output X</span>
+    <span class="n">plink</span> <span class="o">--</span><span class="n">bfile</span> <span class="s">&#39;$[next(iter(molecular_pheno[0]))]/cache/$[name_prefix].$[_regions[0]]&#39;</span><span class="n">\</span>
+          <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">list</span> <span class="o">$</span><span class="n">[_output[0]]</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">mac</span> <span class="m">1</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">make</span><span class="o">-</span><span class="n">bed</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">out</span> <span class="o">$</span><span class="n">[_output[1]</span><span class="o">:</span><span class="n">n]</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">no</span><span class="o">-</span><span class="n">sex</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">extract</span> <span class="o">$</span><span class="n">[extract_snp]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[snp_exclude_2]</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">bed_list</span> <span class="o">=</span> <span class="n">path</span>
+<span class="n">input</span><span class="o">:</span> <span class="n">group_by</span> <span class="o">=</span> <span class="m">3</span><span class="p">,</span> <span class="n">group_with</span> <span class="o">=</span> <span class="s">&#39;regions&#39;</span>
+<span class="n">output</span><span class="o">:</span> <span class="n">f</span><span class="s">&#39;{wd:a}/cache_snp/{name_prefix}.{_regions[0]}.merged.bed&#39;</span>
+<span class="n">parameter</span><span class="o">:</span> <span class="n">extract_snp</span> <span class="o">=</span> <span class="n">path</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;4h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;10G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_output[0]:bn}&#39;</span>  
+<span class="n">bash</span><span class="o">:</span> <span class="n">expand</span> <span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="c1"># create the merged output X</span>
+    <span class="n">plink</span> <span class="o">--</span><span class="n">bfile</span> <span class="o">$</span><span class="n">[_input[1]</span><span class="o">:</span><span class="n">n]</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">mac</span> <span class="m">1</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">make</span><span class="o">-</span><span class="n">bed</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">out</span> <span class="o">$</span><span class="n">[_output</span><span class="o">:</span><span class="n">n]</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">no</span><span class="o">-</span><span class="n">sex</span> <span class="n">\</span>
+          <span class="o">--</span><span class="n">extract</span> <span class="o">$</span><span class="n">[extract_snp]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Performed-MV-susie">Performed MV susie<a class="anchor-link" href="#Performed-MV-susie">&#182;</a></h2><p>This step take the merged files from the previous step to performed mv susies. Before MV susie are done, the X are filter, mean-imputed, and then scaled. The Y are scaled. The covariance matrix of Y are computed via flashier</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[mv_susie_2</span><span class="p">,</span><span class="n">mv_susie_cv_2</span><span class="p">,</span><span class="n">susie]</span>
+<span class="n">input</span><span class="o">:</span> <span class="n">group_by</span> <span class="o">=</span> <span class="m">3</span><span class="p">,</span> <span class="n">group_with</span> <span class="o">=</span> <span class="s">&#39;regions&#39;</span>
+<span class="n">output</span><span class="o">:</span>  <span class="n">f</span><span class="s">&#39;{wd:a}/result/{_input[0]:bn}.mv_susie.model.RData&#39;</span><span class="p">,</span>
+         <span class="n">f</span><span class="s">&#39;{wd:a}/result/{_input[0]:bn}.transformed_XY.RData&#39;</span><span class="p">,</span>
+         <span class="n">f</span><span class="s">&#39;{wd:a}/result/{_input[0]:bn}.mv_wgt.txt&#39;</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;12h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;6G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_output[0]:bn}&#39;</span>
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span><span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output[0]}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output[0]}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;plink2R&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;mashr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;mmbr&quot;</span><span class="p">)</span>  
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;flashier&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;modelr&quot;</span><span class="p">)</span>
+    <span class="c1"># Define functions</span>
+    <span class="c1">###Functions to compute MAF and missing genotype rate</span>
+    <span class="n">compute_maf</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+      <span class="n">f</span> <span class="o">&lt;-</span> <span class="nf">mean</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span><span class="n">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span><span class="o">/</span><span class="m">2</span>
+      <span class="nf">return</span><span class="p">(</span><span class="nf">min</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="m">1</span><span class="o">-</span><span class="n">f</span><span class="p">))</span>
+    <span class="p">}</span>
+    
+    <span class="n">compute_missing</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+      <span class="n">miss</span> <span class="o">&lt;-</span> <span class="nf">sum</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">geno</span><span class="p">))</span><span class="o">/</span><span class="nf">length</span><span class="p">(</span><span class="n">geno</span><span class="p">)</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">miss</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="n">mean_impute</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+      <span class="n">f</span> <span class="o">&lt;-</span> <span class="nf">apply</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="nf">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">))</span>
+      <span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">length</span><span class="p">(</span><span class="n">f</span><span class="p">))</span> <span class="n">geno[</span><span class="p">,</span><span class="n">i]</span><span class="nf">[which</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">geno[</span><span class="p">,</span><span class="n">i]</span><span class="p">))</span><span class="n">]</span> <span class="o">&lt;-</span> <span class="n">f[i]</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">geno</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="n">is_zero_variance</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">unique</span><span class="p">(</span><span class="n">x</span><span class="o">%&gt;%</span><span class="n">na.omit</span><span class="p">))</span><span class="o">==</span><span class="m">1</span><span class="p">)</span> <span class="nf">return</span><span class="p">(</span><span class="bp">T</span><span class="p">)</span>
+      <span class="n">else</span> <span class="nf">return</span><span class="p">(</span><span class="bp">F</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="c1">### Filter X matrix</span>
+    <span class="n">filter_X</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">missing_rate_thresh</span><span class="p">,</span> <span class="n">maf_thresh</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">compute_missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">missing_rate_thresh</span><span class="p">)</span>
+      <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X[</span><span class="p">,</span> <span class="o">-</span><span class="n">rm_col]</span>
+      <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">compute_maf</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">maf_thresh</span><span class="p">)</span>
+      <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X[</span><span class="p">,</span> <span class="o">-</span><span class="n">rm_col]</span>
+      <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">is_zero_variance</span><span class="p">))</span>
+      <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X[</span><span class="p">,</span> <span class="o">-</span><span class="n">rm_col]</span>
+      <span class="nf">return</span><span class="p">(</span><span class="nf">mean_impute</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+    <span class="p">}</span>
+    <span class="c1">###Function to calculate the covariance matrix of Y via flash</span>
+    <span class="n">compute_cov_flash</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">miss</span><span class="o">=</span><span class="kc">NULL</span><span class="p">){</span>
+      <span class="nf">if</span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">miss</span><span class="p">)){</span>
+        <span class="n">fl</span> <span class="o">&lt;-</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">flash</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">var.type</span> <span class="o">=</span> <span class="m">2</span><span class="p">,</span> <span class="n">prior.family</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal</span><span class="p">(),</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal.scale.mix</span><span class="p">()),</span> <span class="n">backfit</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> <span class="n">verbose.lvl</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
+      <span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+        <span class="n">fl</span> <span class="o">&lt;-</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">flash</span><span class="p">(</span><span class="n">Y[</span><span class="o">-</span><span class="n">miss</span><span class="p">,</span> <span class="n">]</span><span class="p">,</span> <span class="n">var.type</span> <span class="o">=</span> <span class="m">2</span><span class="p">,</span> <span class="n">prior.family</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal</span><span class="p">(),</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal.scale.mix</span><span class="p">()),</span> <span class="n">backfit</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> <span class="n">verbose.lvl</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
+      <span class="p">}</span>  
+      <span class="nf">if</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">n.factors</span><span class="o">==</span><span class="m">0</span><span class="p">){</span>
+        <span class="n">covar</span> <span class="o">&lt;-</span> <span class="nf">diag</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">residuals.sd^2</span><span class="p">)</span>
+      <span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+        <span class="n">fsd</span> <span class="o">&lt;-</span> <span class="nf">sapply</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">fitted.g[[1]]</span><span class="p">,</span> <span class="s">&#39;[[&#39;</span><span class="p">,</span> <span class="s">&quot;sd&quot;</span><span class="p">)</span>
+        <span class="n">covar</span> <span class="o">&lt;-</span> <span class="nf">diag</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">residuals.sd^2</span><span class="p">)</span> <span class="o">+</span> <span class="nf">crossprod</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">flash.fit</span><span class="o">$</span><span class="n">EF[[2]]</span><span class="p">)</span> <span class="o">*</span> <span class="n">fsd</span><span class="p">)</span>
+      <span class="p">}</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">covar</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="c1">###Function to impute the missing X with means and then scale and center X</span>
+      <span class="n">impute_and_transform</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">genos</span><span class="p">,</span><span class="n">impute</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">){</span>
+      <span class="n">tmp</span> <span class="o">=</span> <span class="n">genos</span>
+      <span class="nf">if</span><span class="p">(</span><span class="n">impute</span> <span class="o">==</span> <span class="kc">TRUE</span><span class="p">){</span>
+      <span class="nf">for</span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">tmp</span><span class="p">)){</span>
+        <span class="n">tmp[</span><span class="p">,</span><span class="n">i]</span><span class="o">=</span><span class="nf">coalesce</span><span class="p">(</span><span class="n">tmp[</span><span class="p">,</span><span class="n">i]</span><span class="p">,</span><span class="nf">mean</span><span class="p">(</span><span class="n">tmp[</span><span class="p">,</span><span class="n">i]</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()))</span><span class="o">%&gt;%</span><span class="nf">scale</span><span class="p">()}</span>
+        <span class="nf">return</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+      <span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+    <span class="nf">for</span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">tmp</span><span class="p">)){</span>
+        <span class="n">tmp[</span><span class="p">,</span><span class="n">i]</span><span class="o">=</span><span class="n">tmp[</span><span class="p">,</span><span class="n">i]</span><span class="o">%&gt;%</span><span class="nf">scale</span><span class="p">()}</span>
+        <span class="nf">return</span><span class="p">(</span><span class="n">tmp</span><span class="p">)}}</span>
+    <span class="nf">if </span><span class="p">(</span><span class="o">$</span><span class="n">[impute]</span> <span class="o">==</span> <span class="kc">TRUE</span><span class="p">){</span>
+    <span class="c1"># Load X data</span>
+    <span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]_raw</span> <span class="o">=</span> <span class="nf">read_plink</span><span class="p">(</span><span class="s">&quot;$[_input[1]:n]&quot;</span><span class="p">)</span><span class="o">$</span><span class="n">bed</span>
+    <span class="c1"># Filter X by 0.1 NA and 0.01 MAF</span>
+    <span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]_ftr</span> <span class="o">=</span> <span class="nf">filter_X</span><span class="p">(</span><span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]_raw</span><span class="p">,</span><span class="m">0.1</span><span class="p">,</span><span class="m">0.01</span><span class="p">)</span>
+    <span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">impute_and_transform</span><span class="p">(</span><span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]_ftr</span><span class="p">)</span>
+    <span class="c1"># Load Y data</span>
+    <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&quot;$[_input[2]]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+    <span class="c1"># Reorder Y based on X</span>
+    <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="o">%&gt;%</span><span class="nf">arrange</span><span class="p">(</span><span class="nf">match</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="nf">rownames</span><span class="p">(</span><span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">)))</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="o">-</span><span class="n">name</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">as.matrix</span><span class="p">()</span>
+    <span class="c1"># Compute the Cov matrix for Y via flashier</span>
+    <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">impute_and_transform</span><span class="p">(</span><span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span> <span class="n">impute</span> <span class="o">=</span> <span class="kc">FALSE</span><span class="p">)</span>
+    <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]_cov</span> <span class="o">=</span> <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="o">%&gt;%</span><span class="nf">compute_cov_flash</span><span class="p">()</span>
+    <span class="c1"># Get prior</span>
+    <span class="n">prior_covar</span> <span class="o">&lt;-</span> <span class="nf">create_mash_prior</span><span class="p">(</span><span class="n">sample_data</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span> <span class="n">residual_variance</span><span class="o">=</span> <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]_cov</span><span class="p">,</span> <span class="n">max_mixture_len</span><span class="o">=</span><span class="m">-1</span><span class="p">))</span>
+    <span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+    <span class="c1"># Load data</span>
+    <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&quot;$[_input[2]]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+    <span class="c1"># Remove NA from bed</span>
+    <span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">read_plink</span><span class="p">(</span><span class="s">&quot;$[_input[1]:n]&quot;</span><span class="p">)</span><span class="o">$</span><span class="n">bed</span><span class="o">%&gt;%</span><span class="nf">t</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">t</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">impute_and_transform</span><span class="p">(</span><span class="n">impute</span> <span class="o">=</span> <span class="kc">FALSE</span><span class="p">)</span>
+    <span class="c1"># Reorder Y based on X</span>
+    <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="o">%&gt;%</span><span class="nf">arrange</span><span class="p">(</span><span class="nf">match</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="nf">rownames</span><span class="p">(</span><span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">)))</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="o">-</span><span class="n">name</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">as.matrix</span><span class="p">()</span>
+    <span class="c1"># Scale Y</span>
+    <span class="n">Y_complete_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span>
+    <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">impute_and_transform</span><span class="p">(</span><span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span> <span class="n">impute</span> <span class="o">=</span> <span class="kc">FALSE</span><span class="p">)</span>
+    <span class="c1"># Get prior</span>
+    <span class="c1"># Compute the Cov matrix for Y_complete</span>
+    <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]_cov</span> <span class="o">=</span> <span class="nf">cov</span><span class="p">(</span><span class="n">Y_complete_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">)}</span>
+   
+   
+    <span class="nf">if</span><span class="p">(</span><span class="s">&#39;$[mixture_prior]&#39;</span> <span class="o">==</span> <span class="s">&#39;NULL&#39;</span><span class="p">){</span>
+    <span class="n">prior_covar</span> <span class="o">&lt;-</span> <span class="nf">create_mash_prior</span><span class="p">(</span><span class="n">sample_data</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span> <span class="n">residual_variance</span><span class="o">=</span> <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]_cov</span><span class="p">,</span> <span class="n">max_mixture_len</span><span class="o">=</span><span class="m">-1</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="bp">F</span><span class="p">))</span>
+    <span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+    <span class="n">mx_prior</span> <span class="o">=</span> <span class="nf">readRDS</span><span class="p">(</span><span class="s">&#39;$[mixture_prior]&#39;</span><span class="p">)</span>
+    <span class="n">prior_covar</span> <span class="o">&lt;-</span> <span class="nf">create_mash_prior</span><span class="p">(</span><span class="n">mixture_prior</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">mx_prior</span><span class="o">$</span><span class="n">w</span><span class="p">,</span> <span class="n">matrices</span> <span class="o">=</span> <span class="n">mx_prior</span><span class="o">$</span><span class="n">U</span><span class="p">))</span>
+    <span class="p">}</span>
+   
+    <span class="n">m_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span> 
+                <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span> 
+                <span class="n">L</span><span class="o">=</span><span class="m">10</span><span class="p">,</span> 
+                <span class="n">prior_variance</span><span class="o">=</span><span class="n">prior_covar</span><span class="p">,</span>
+                <span class="n">residual_variance</span> <span class="o">=</span> <span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]_cov</span><span class="p">,</span>
+                <span class="n">precompute_covariances</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span>
+ 
+    <span class="c1">#Add a hsq sub for the msusie object</span>
+    <span class="n">hsq_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="o">=</span><span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">))</span>
+    <span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">)){</span>
+      <span class="n">hsq_</span><span class="o">$</span><span class="n">[_regions[0]][i]</span> <span class="o">=</span> <span class="nf">var</span><span class="p">(</span><span class="nf">predict</span><span class="p">(</span><span class="n">m_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">)</span><span class="n">[</span><span class="p">,</span><span class="n">i]</span><span class="p">)</span><span class="o">/</span><span class="nf">var</span><span class="p">(</span><span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]][</span><span class="p">,</span><span class="n">i]</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">())}</span>
+    <span class="n">m_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="o">$</span><span class="n">hsq</span> <span class="o">=</span> <span class="n">hsq_</span><span class="o">$</span><span class="n">[_regions[0]]</span>
+    <span class="c1">#Output: model with hsq estimated</span>
+    <span class="nf">save</span><span class="p">(</span><span class="n">m_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span><span class="n">file</span> <span class="o">=</span> <span class="s">&quot;$[_output[0]]&quot;</span><span class="p">)</span>
+    <span class="c1">#Output: scaled data</span>
+    <span class="n">scaled_</span><span class="o">$</span><span class="n">[_regions[0]]</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">X_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span><span class="n">Y_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">)</span>
+    <span class="nf">save</span><span class="p">(</span><span class="n">scaled_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="p">,</span><span class="n">file</span> <span class="o">=</span> <span class="s">&quot;$[_output[1]]&quot;</span><span class="p">)</span>
+    <span class="c1">#Output: Weight</span>
+    <span class="n">m_</span><span class="o">$</span><span class="n">[_regions[0]]</span><span class="o">$</span><span class="n">coef</span><span class="o">%&gt;%</span><span class="nf">as.data.frame</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">write_delim</span><span class="p">(</span><span class="s">&quot;$[_output[2]]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>bash: [mv_susie_2,mv_susie_cv_2]: command not found
+bash: input:: command not found
+bash: output:: command not found
+bash: f{wd:a}/result/{_input[0]:bn}.transformed_XY.RData,: No such file or directory
+bash: f{wd:a}/result/{_input[0]:bn}.mv_wgt.txt: No such file or directory
+bash: task:: command not found
+bash: R:: command not found
+bash: syntax error near unexpected token `&#34;dplyr&#34;&#39;
+bash: syntax error near unexpected token `&#34;tibble&#34;&#39;
+bash: syntax error near unexpected token `&#34;readr&#34;&#39;
+bash: syntax error near unexpected token `&#34;plink2R&#34;&#39;
+bash: syntax error near unexpected token `&#34;mashr&#34;&#39;
+bash: syntax error near unexpected token `&#34;mmbr&#34;&#39;
+bash: syntax error near unexpected token `&#34;flashier&#34;&#39;
+bash: syntax error near unexpected token `&#34;modelr&#34;&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `min&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `miss&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `geno&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `unique&#39;
+bash: syntax error near unexpected token `else&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `rm_col&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `rm_col&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `rm_col&#39;
+bash: syntax error near unexpected token `mean_impute&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `miss&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `{&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `covar&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: tmp: command not found
+bash: syntax error near unexpected token `{&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `tmp&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `tmp&#39;
+bash: syntax error near unexpected token `{&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `}&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: Y_0,: command not found
+bash: residual_variance: command not found
+bash: syntax error near unexpected token `)&#39;
+bash: syntax error near unexpected token `0,ncol&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: m_0: command not found
+bash: syntax error near unexpected token `m_$[_regions[0]],file&#39;
+bash: syntax error near unexpected token `(&#39;
+bash: syntax error near unexpected token `scaled_$[_regions[0]],file&#39;
+bash: syntax error near unexpected token `(&#39;
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Perform-Crossvalidation-and-stored-the-relevent-matrixs">Perform Crossvalidation and stored the relevent matrixs<a class="anchor-link" href="#Perform-Crossvalidation-and-stored-the-relevent-matrixs">&#182;</a></h2><p>This step load the scaled X,Y output from the previouse step, perform CV, and calculate the diagnosis paramters: R2,P-value, and RMSE. The P value here is the indication of probability of observing the data under the null that there is no association between the predicted and actual Y</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[mv_susie_cv_3</span><span class="p">,</span><span class="n">cv]</span>
+<span class="n">input</span><span class="o">:</span> <span class="n">group_by</span> <span class="o">=</span> <span class="m">3</span><span class="p">,</span> <span class="n">group_with</span> <span class="o">=</span> <span class="s">&#39;regions&#39;</span>
+<span class="n">output</span><span class="o">:</span>  <span class="n">f</span><span class="s">&#39;{wd:a}/result/{_input[0]:bn}.cv.RData&#39;</span><span class="p">,</span>
+         <span class="n">f</span><span class="s">&#39;{wd:a}/result/{_input[0]:bn}.cv_diag.RData&#39;</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;12h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;8G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_output[0]:bn}&#39;</span>
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span><span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output[0]}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output[0]}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;plink2R&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;mashr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;mmbr&quot;</span><span class="p">)</span>  
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;flashier&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;purrr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;modelr&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Define functions</span>
+    <span class="n">compute_cov_flash</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">miss</span><span class="o">=</span><span class="kc">NULL</span><span class="p">){</span>
+      <span class="nf">if</span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">miss</span><span class="p">)){</span>
+        <span class="n">fl</span> <span class="o">&lt;-</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">flash</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">var.type</span> <span class="o">=</span> <span class="m">2</span><span class="p">,</span> <span class="n">prior.family</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal</span><span class="p">(),</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal.scale.mix</span><span class="p">()),</span> <span class="n">backfit</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> <span class="n">verbose.lvl</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
+      <span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+        <span class="n">fl</span> <span class="o">&lt;-</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">flash</span><span class="p">(</span><span class="n">Y[</span><span class="o">-</span><span class="n">miss</span><span class="p">,</span> <span class="n">]</span><span class="p">,</span> <span class="n">var.type</span> <span class="o">=</span> <span class="m">2</span><span class="p">,</span> <span class="n">prior.family</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal</span><span class="p">(),</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal.scale.mix</span><span class="p">()),</span> <span class="n">backfit</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> <span class="n">verbose.lvl</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
+      <span class="p">}</span>  
+      <span class="nf">if</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">n.factors</span><span class="o">==</span><span class="m">0</span><span class="p">){</span>
+        <span class="n">covar</span> <span class="o">&lt;-</span> <span class="nf">diag</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">residuals.sd^2</span><span class="p">)</span>
+      <span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+        <span class="n">fsd</span> <span class="o">&lt;-</span> <span class="nf">sapply</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">fitted.g[[1]]</span><span class="p">,</span> <span class="s">&#39;[[&#39;</span><span class="p">,</span> <span class="s">&quot;sd&quot;</span><span class="p">)</span>
+        <span class="n">covar</span> <span class="o">&lt;-</span> <span class="nf">diag</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">residuals.sd^2</span><span class="p">)</span> <span class="o">+</span> <span class="nf">crossprod</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">flash.fit</span><span class="o">$</span><span class="n">EF[[2]]</span><span class="p">)</span> <span class="o">*</span> <span class="n">fsd</span><span class="p">)</span>
+      <span class="p">}</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">covar</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="c1">## Compute rmse function</span>
+    <span class="n">compute_rmse</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span><span class="n">fitted</span><span class="p">){</span>
+    <span class="n">rmse</span> <span class="o">=</span> <span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="nf">ncol</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+    <span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">raw</span><span class="p">)){</span>
+      <span class="n">rmse[i]</span> <span class="o">=</span> <span class="p">((</span><span class="n">fitted</span> <span class="o">-</span> <span class="n">raw</span><span class="p">)</span><span class="n">[</span><span class="p">,</span><span class="n">i]</span><span class="p">)</span><span class="n">^2</span><span class="o">%&gt;%</span><span class="nf">mean</span><span class="p">(</span><span class="n">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">sqrt</span><span class="p">()</span> 
+      <span class="p">}</span>
+    <span class="nf">return</span><span class="p">(</span><span class="n">rmse</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="c1">## Compute r2 function</span>
+    <span class="n">compute_r2</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span><span class="n">fitted</span><span class="p">){</span>
+      <span class="n">r2</span> <span class="o">=</span> <span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="nf">ncol</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+      <span class="nf">for </span><span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">raw</span><span class="p">)){</span>
+       <span class="n">r2[j]</span> <span class="o">=</span> <span class="nf">summary</span><span class="p">(</span><span class="nf">lm</span><span class="p">(</span> <span class="n">fitted[</span><span class="p">,</span><span class="n">j]</span> <span class="o">~</span> <span class="n">raw[</span><span class="p">,</span><span class="n">j]</span> <span class="p">))</span><span class="o">$</span><span class="n">adj.r.sq</span>
+      <span class="p">}</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">r2</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="c1">## Compute r2 raw</span>
+    
+    <span class="n">compute_r2_raw</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span><span class="n">fitted</span><span class="p">){</span>
+      <span class="n">r2</span> <span class="o">=</span> <span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="nf">ncol</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+      <span class="nf">for </span><span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">raw</span><span class="p">)){</span>
+        <span class="n">r2[j]</span> <span class="o">=</span>  <span class="nf">cor</span><span class="p">(</span><span class="n">fitted[</span><span class="p">,</span><span class="n">j]</span><span class="nf">[which</span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="n">raw[</span><span class="p">,</span><span class="n">j]</span><span class="p">))</span><span class="n">]</span><span class="p">,</span><span class="n">raw[</span><span class="p">,</span><span class="n">j]</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">())</span><span class="n">^2</span>
+      <span class="p">}</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">r2</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="c1">## Get P.value</span>
+    <span class="n">compute_pval</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span><span class="n">fitted</span><span class="p">){</span>
+      <span class="n">pval</span> <span class="o">=</span> <span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="nf">ncol</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+      <span class="nf">for </span><span class="p">(</span><span class="n">k</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">raw</span><span class="p">)){</span>
+        <span class="n">pval[k]</span> <span class="o">=</span> <span class="nf">summary</span><span class="p">(</span><span class="nf">lm</span><span class="p">(</span> <span class="n">fitted[</span><span class="p">,</span><span class="n">k]</span> <span class="o">~</span> <span class="n">raw[</span><span class="p">,</span><span class="n">k]</span> <span class="p">))</span><span class="o">$</span><span class="n">coef[2</span><span class="p">,</span><span class="m">4</span><span class="n">]</span>
+      <span class="p">}</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">pval</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    
+
+    <span class="c1">###Functions to compute MAF and missing genotype rate</span>
+    <span class="n">compute_maf</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+      <span class="n">f</span> <span class="o">&lt;-</span> <span class="nf">mean</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span><span class="n">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span><span class="o">/</span><span class="m">2</span>
+      <span class="nf">return</span><span class="p">(</span><span class="nf">min</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="m">1</span><span class="o">-</span><span class="n">f</span><span class="p">))</span>
+    <span class="p">}</span>
+    
+    <span class="n">compute_missing</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+      <span class="n">miss</span> <span class="o">&lt;-</span> <span class="nf">sum</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">geno</span><span class="p">))</span><span class="o">/</span><span class="nf">length</span><span class="p">(</span><span class="n">geno</span><span class="p">)</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">miss</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="n">mean_impute</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+      <span class="n">f</span> <span class="o">&lt;-</span> <span class="nf">apply</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="nf">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">))</span>
+      <span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">length</span><span class="p">(</span><span class="n">f</span><span class="p">))</span> <span class="n">geno[</span><span class="p">,</span><span class="n">i]</span><span class="nf">[which</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">geno[</span><span class="p">,</span><span class="n">i]</span><span class="p">))</span><span class="n">]</span> <span class="o">&lt;-</span> <span class="n">f[i]</span>
+      <span class="nf">return</span><span class="p">(</span><span class="n">geno</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="n">is_zero_variance</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">unique</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">==</span><span class="m">1</span><span class="p">)</span> <span class="nf">return</span><span class="p">(</span><span class="bp">T</span><span class="p">)</span>
+      <span class="n">else</span> <span class="nf">return</span><span class="p">(</span><span class="bp">F</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="c1">### Filter X matrix</span>
+    <span class="n">filter_X</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">missing_rate_thresh</span><span class="p">,</span> <span class="n">maf_thresh</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">compute_missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">missing_rate_thresh</span><span class="p">)</span>
+      <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X[</span><span class="p">,</span> <span class="o">-</span><span class="n">rm_col]</span>
+      <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">compute_maf</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">maf_thresh</span><span class="p">)</span>
+      <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X[</span><span class="p">,</span> <span class="o">-</span><span class="n">rm_col]</span>
+      <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">is_zero_variance</span><span class="p">))</span>
+      <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X[</span><span class="p">,</span> <span class="o">-</span><span class="n">rm_col]</span>
+      <span class="nf">return</span><span class="p">(</span><span class="nf">mean_impute</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+    <span class="p">}</span>
+    
+    <span class="c1">### Produce CV dataset</span>
+    <span class="n">cv_data_gen</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">times</span><span class="p">,</span><span class="n">test_prop</span><span class="p">){</span>
+    <span class="c1"># Merged the X and Y for producing testing and training set for modelr cv</span>
+    <span class="n">cv_df_raw</span> <span class="o">=</span> <span class="nf">cbind</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">as_tibble</span><span class="p">()</span> 
+    <span class="n">cv_df</span> <span class="o">=</span> <span class="nf">crossv_mc</span><span class="p">(</span><span class="n">cv_df_raw</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span><span class="n">test</span> <span class="o">=</span> <span class="n">test_prop</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+      <span class="n">train_X</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">train</span><span class="p">,</span><span class="o">~</span><span class="nf">as_tibble</span><span class="p">(</span><span class="n">.x</span><span class="p">)</span><span class="n">[1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="n">]</span><span class="o">%&gt;%</span><span class="n">as.matrix</span><span class="p">),</span>
+      <span class="n">train_Y</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">train</span><span class="p">,</span><span class="o">~</span><span class="nf">as_tibble</span><span class="p">(</span><span class="n">.x</span><span class="p">)</span><span class="nf">[</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="m">+1</span><span class="p">)</span><span class="o">:</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">+</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y</span><span class="p">))</span><span class="n">]</span><span class="o">%&gt;%</span><span class="n">as.matrix</span><span class="p">),</span>
+      <span class="n">test_X</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">test</span><span class="p">,</span><span class="o">~</span><span class="nf">as_tibble</span><span class="p">(</span><span class="n">.x</span><span class="p">)</span><span class="n">[1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="n">]</span><span class="o">%&gt;%</span><span class="n">as.matrix</span><span class="p">),</span>
+      <span class="n">test_Y</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">test</span><span class="p">,</span><span class="o">~</span><span class="nf">as_tibble</span><span class="p">(</span><span class="n">.x</span><span class="p">)</span><span class="nf">[</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="m">+1</span><span class="p">)</span><span class="o">:</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">+</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y</span><span class="p">))</span><span class="n">]</span><span class="o">%&gt;%</span><span class="n">as.matrix</span><span class="p">)</span>
+    <span class="p">)</span>  
+    
+    <span class="c1"># Filter Train X with maf and missing, filter test X with the same col as Train X</span>
+    <span class="n">cv_df</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+    <span class="n">train_X</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span><span class="o">~</span><span class="nf">filter_X</span><span class="p">(</span><span class="n">.x</span><span class="p">,</span><span class="m">0.1</span><span class="p">,</span><span class="m">0.01</span><span class="p">)),</span>
+    <span class="n">test_X</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">test_X</span><span class="p">,</span><span class="n">train_X</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">as_tibble</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="nf">colnames</span><span class="p">(</span><span class="n">.y</span><span class="p">))</span><span class="o">%&gt;%</span><span class="nf">as.matrix</span><span class="p">())</span>
+    <span class="p">)</span>
+    <span class="nf">return</span><span class="p">(</span><span class="n">cv_df</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="c1"># Load data</span>
+    <span class="n">full_model</span> <span class="o">=</span> <span class="nf">attach</span><span class="p">(</span><span class="s">&#39;$[_input[0]]&#39;</span><span class="p">)</span>
+    <span class="n">full_model</span> <span class="o">=</span> <span class="n">full_model</span><span class="o">$</span><span class="n">m_</span><span class="o">$</span><span class="n">[_regions[0]]</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="nf">attach</span><span class="p">(</span><span class="s">&#39;$[_input[1]]&#39;</span><span class="p">)</span><span class="o">$</span><span class="n">scaled_</span><span class="o">$</span><span class="n">[_regions[0]][[1]]</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="nf">attach</span><span class="p">(</span><span class="s">&#39;$[_input[1]]&#39;</span><span class="p">)</span><span class="o">$</span><span class="n">scaled_</span><span class="o">$</span><span class="n">[_regions[0]][[2]]</span>
+    <span class="c1"># Generate cv dataaset</span>
+    
+    
+    <span class="n">cv_df</span> <span class="o">=</span> <span class="nf">cv_data_gen</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="o">$</span><span class="n">[cv_times]</span><span class="p">,</span><span class="o">$</span><span class="n">[testing_prop]</span><span class="p">)</span>
+    
+                                                      
+    <span class="c1"># Compute the cov matrix for training set Y based on the choice of imputation                  </span>
+                         
+    <span class="nf">if </span><span class="p">(</span><span class="o">$</span><span class="n">[impute]</span> <span class="o">==</span> <span class="kc">TRUE</span><span class="p">){</span>
+        <span class="n">cv_df</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span> 
+        <span class="n">cov</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">train_Y</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">compute_cov_flash</span><span class="p">())</span>
+      <span class="p">)</span>
+        <span class="p">}</span><span class="n">else</span><span class="p">{</span>
+      <span class="n">cv_df</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">train_Y</span><span class="p">,</span><span class="o">~</span><span class="nf">cov</span><span class="p">(</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="n">na.omit</span><span class="p">)))}</span>
+
+    <span class="c1"># Actual cv</span>
+    
+    <span class="nf">if</span><span class="p">(</span><span class="s">&#39;$[mixture_prior]&#39;</span><span class="o">==</span><span class="s">&#39;NULL&#39;</span><span class="p">){</span>
+
+    
+    <span class="n">cv_df</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+    
+    <span class="c1">## Get the prior</span>
+    
+        <span class="n">prior</span> <span class="o">=</span> <span class="nf">pmap</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span><span class="n">train_Y</span><span class="p">,</span><span class="n">cov</span><span class="p">),</span><span class="nf">function</span><span class="p">(</span><span class="n">first</span><span class="p">,</span><span class="n">second</span><span class="p">,</span><span class="n">third</span><span class="p">)(</span>
+        <span class="nf">create_mash_prior</span><span class="p">(</span><span class="n">sample_data</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span> <span class="n">X</span> <span class="o">=</span> <span class="n">first</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">second</span><span class="p">,</span> <span class="n">residual_variance</span> <span class="o">=</span> <span class="n">third</span><span class="p">,</span> <span class="n">max_mixture_len</span> <span class="o">=</span><span class="m">-1</span><span class="p">,</span><span class="n">center</span> <span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="n">scale</span> <span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+        <span class="p">)))</span> <span class="p">,</span>
+        
+    <span class="c1">## Do msusie</span>
+    
+      <span class="n">msusie</span> <span class="o">=</span> <span class="nf">pmap</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span><span class="n">train_Y</span><span class="p">,</span><span class="n">cov</span><span class="p">,</span><span class="n">prior</span><span class="p">),</span><span class="nf">function</span><span class="p">(</span><span class="n">first</span><span class="p">,</span><span class="n">second</span><span class="p">,</span><span class="n">third</span><span class="p">,</span><span class="n">forth</span><span class="p">)(</span>
+        <span class="nf">msusie</span><span class="p">(</span><span class="n">first</span><span class="p">,</span><span class="n">second</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="m">10</span><span class="p">,</span> <span class="n">prior_variance</span> <span class="o">=</span> <span class="n">forth</span><span class="p">,</span><span class="n">residual_variance</span> <span class="o">=</span> <span class="n">third</span><span class="p">,</span><span class="n">precompute_covariances</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span>
+        <span class="p">))</span>
+        
+        <span class="p">)}</span> <span class="n">else</span> <span class="p">{</span>
+   
+       <span class="n">mx_prior</span> <span class="o">=</span> <span class="nf">readRDS</span><span class="p">(</span><span class="s">&#39;$[mixture_prior]&#39;</span><span class="p">)</span>
+    <span class="c1">## Get the prior</span>
+       <span class="n">prior_covar</span> <span class="o">&lt;-</span> <span class="nf">create_mash_prior</span><span class="p">(</span><span class="n">mixture_prior</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">mx_prior</span><span class="o">$</span><span class="n">w</span><span class="p">,</span> <span class="n">matrices</span> <span class="o">=</span> <span class="n">mx_prior</span><span class="o">$</span><span class="n">U</span><span class="p">))</span>
+       
+       <span class="n">cv_df</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+        
+    <span class="c1">## Do msusie</span>
+    
+      <span class="n">msusie</span> <span class="o">=</span> <span class="nf">pmap</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span><span class="n">train_Y</span><span class="p">,</span><span class="n">cov</span><span class="p">),</span><span class="nf">function</span><span class="p">(</span><span class="n">first</span><span class="p">,</span><span class="n">second</span><span class="p">,</span><span class="n">third</span><span class="p">)(</span>
+        <span class="nf">msusie</span><span class="p">(</span><span class="n">first</span><span class="p">,</span><span class="n">second</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="m">10</span><span class="p">,</span> <span class="n">prior_variance</span> <span class="o">=</span> <span class="n">prior_covar</span><span class="p">,</span><span class="n">residual_variance</span> <span class="o">=</span> <span class="n">third</span><span class="p">,</span><span class="n">precompute_covariances</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span>
+        <span class="p">)))</span>
+    <span class="p">}</span>
+    <span class="c1"># Extract data </span>
+    
+    <span class="n">cv_df</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+      <span class="n">weight</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">msusie</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">coef</span><span class="p">),</span>
+      <span class="n">test_fitted</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">msusie</span><span class="p">,</span><span class="n">test_X</span><span class="p">,</span><span class="o">~</span><span class="nf">predict.mmbr</span><span class="p">(</span><span class="n">.x</span><span class="p">,</span><span class="n">.y</span><span class="p">)),</span>
+      <span class="n">rmse</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">test_Y</span><span class="p">,</span><span class="n">test_fitted</span><span class="p">,</span><span class="o">~</span><span class="nf">compute_rmse</span><span class="p">(</span><span class="n">.x</span><span class="p">,</span><span class="n">.y</span><span class="p">)),</span>
+      <span class="n">r2</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">test_Y</span><span class="p">,</span><span class="n">test_fitted</span><span class="p">,</span><span class="o">~</span><span class="nf">compute_r2</span><span class="p">(</span><span class="n">.x</span><span class="p">,</span><span class="n">.y</span><span class="p">)),</span>
+      <span class="n">r2_raw</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">test_Y</span><span class="p">,</span><span class="n">test_fitted</span><span class="p">,</span><span class="o">~</span><span class="nf">compute_r2_raw</span><span class="p">(</span><span class="n">.x</span><span class="p">,</span><span class="n">.y</span><span class="p">)),</span>
+      <span class="n">pval</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">test_Y</span><span class="p">,</span><span class="n">test_fitted</span><span class="p">,</span><span class="o">~</span><span class="nf">compute_pval</span><span class="p">(</span><span class="n">.x</span><span class="p">,</span><span class="n">.y</span><span class="p">))</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Calculate metrics</span>
+    
+    <span class="n">mean_rmse</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">rmse</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">as.data.frame</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">t</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">as_tibble</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">colMeans</span><span class="p">()</span>
+    <span class="n">mean_r2</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">r2</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">as.data.frame</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">t</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">as_tibble</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">colMeans</span><span class="p">()</span>
+    <span class="n">mean_r2_raw</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">r2_raw</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">as.data.frame</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">t</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">as_tibble</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">colMeans</span><span class="p">()</span>
+    <span class="n">mean_pval</span> <span class="o">=</span> <span class="n">cv_df</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">pval</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">as.data.frame</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">t</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">as_tibble</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">colMeans</span><span class="p">()</span>
+
+  
+    <span class="c1"># Save metrics</span>
+    <span class="n">full_model</span><span class="o">$</span><span class="n">rmse</span> <span class="o">=</span> <span class="n">mean_rmse</span>
+    <span class="n">full_model</span><span class="o">$</span><span class="n">r2</span> <span class="o">=</span> <span class="n">mean_r2</span> 
+    <span class="n">full_model</span><span class="o">$</span><span class="n">r2_raw</span> <span class="o">=</span> <span class="n">mean_r2_raw</span>    
+    <span class="n">full_model</span><span class="o">$</span><span class="n">pval</span> <span class="o">=</span> <span class="n">mean_pval</span>
+    <span class="n">full_model</span><span class="o">$</span><span class="n">snps</span> <span class="o">=</span> <span class="nf">colnames</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+    <span class="c1"># Save the CV data</span>
+    <span class="nf">save</span><span class="p">(</span><span class="n">cv_df</span><span class="p">,</span><span class="n">file</span> <span class="o">=</span> <span class="s">&quot;$[_output[1]]&quot;</span><span class="p">)</span>
+    
+    <span class="c1">#Output</span>
+    <span class="nf">save</span><span class="p">(</span><span class="n">full_model</span><span class="p">,</span><span class="n">file</span> <span class="o">=</span> <span class="s">&quot;$[_output[0]]&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Merging-all-the-RData-file">Merging all the RData file<a class="anchor-link" href="#Merging-all-the-RData-file">&#182;</a></h2><p>THis step merged the output from  the previous step.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[225]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[mv_susie_3]</span>
+<span class="n">input</span><span class="o">:</span> <span class="n">group_by</span> <span class="o">=</span> <span class="s">&quot;all&quot;</span>
+<span class="n">output</span><span class="o">:</span>  <span class="n">f</span><span class="s">&#39;{wd:a}/mv.RData&#39;</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;12h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;6G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_output:bn}&#39;</span>
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span><span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;purrr&quot;</span><span class="p">)</span>
+    <span class="c1"># Load a template</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&quot;$[region_list]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span><span class="s">&quot;\t&quot;</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="n">ID</span> <span class="o">=</span> <span class="n">`#region`</span> <span class="p">)</span>
+    <span class="c1"># get the path</span>
+    <span class="n">dir</span> <span class="o">=</span> <span class="s">&quot;$[_input[0]:d]/&quot;</span>
+    <span class="n">pre</span> <span class="o">=</span> <span class="s">&quot;$[name_prefix]&quot;</span>
+    <span class="n">sur</span> <span class="o">=</span> <span class="s">&quot;.mv_susie.model.RData&quot;</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">region</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span><span class="n">path</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="o">~</span><span class="nf">paste</span><span class="p">(</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">pre</span><span class="p">,</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="n">.x</span><span class="p">,</span><span class="n">sur</span><span class="p">))))</span>
+    <span class="c1"># Load the data</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">region</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span><span class="n">env</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="o">~</span><span class="nf">attach</span><span class="p">(</span><span class="n">.x</span><span class="p">)),</span>
+                            <span class="n">tb_name</span> <span class="o">=</span> <span class="nf">map_chr</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span><span class="o">~</span><span class="nf">paste</span><span class="p">(</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;_&quot;</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="s">&quot;m&quot;</span><span class="p">,</span><span class="n">.x</span><span class="p">))),</span>
+                             <span class="n">model</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">env</span><span class="p">,</span><span class="n">tb_name</span> <span class="p">,</span> <span class="o">~</span><span class="nf">get</span><span class="p">(</span><span class="n">.y</span><span class="p">,</span><span class="n">env</span> <span class="o">=</span> <span class="n">.x</span><span class="p">)))</span>
+    <span class="c1"># Save the combined output</span>
+    <span class="nf">save</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="n">file</span> <span class="o">=</span> <span class="s">&quot;$[_output]&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[mv_susie_cv_4]</span>
+<span class="n">input</span><span class="o">:</span> <span class="n">group_by</span> <span class="o">=</span> <span class="s">&quot;all&quot;</span>
+<span class="n">output</span><span class="o">:</span>  <span class="n">f</span><span class="s">&#39;{wd:a}/mv_cv.RData&#39;</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;12h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;6G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_output:bn}&#39;</span>
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span><span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;purrr&quot;</span><span class="p">)</span>
+    <span class="c1"># Load a template</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&quot;$[region_list]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span><span class="s">&quot;\t&quot;</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="n">ID</span> <span class="o">=</span> <span class="n">`#region`</span> <span class="p">)</span>
+    <span class="c1"># get the path</span>
+    <span class="n">dir</span> <span class="o">=</span> <span class="s">&quot;$[_input[0]:d]/&quot;</span>
+    <span class="n">pre</span> <span class="o">=</span> <span class="s">&quot;$[name_prefix]&quot;</span>
+    <span class="n">sur</span> <span class="o">=</span> <span class="s">&quot;.mv_susie.model.cv.RData&quot;</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">region</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span><span class="n">path</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="o">~</span><span class="nf">paste</span><span class="p">(</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">pre</span><span class="p">,</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="n">.x</span><span class="p">,</span><span class="n">sur</span><span class="p">))))</span>
+    <span class="c1"># Load the data</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">region</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span><span class="n">env</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="o">~</span><span class="nf">attach</span><span class="p">(</span><span class="n">.x</span><span class="p">)),</span>
+                            <span class="n">tb_name</span> <span class="o">=</span> <span class="s">&quot;full_model&quot;</span><span class="p">,</span>
+                             <span class="n">model</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">env</span><span class="p">,</span><span class="n">tb_name</span> <span class="p">,</span> <span class="o">~</span><span class="nf">get</span><span class="p">(</span><span class="n">.y</span><span class="p">,</span><span class="n">env</span> <span class="o">=</span> <span class="n">.x</span><span class="p">)))</span>
+    <span class="c1"># Save the combined output</span>
+    <span class="nf">save</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="n">file</span> <span class="o">=</span> <span class="s">&quot;$[_output]&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Fusion-transformed">Fusion transformed<a class="anchor-link" href="#Fusion-transformed">&#182;</a></h2><p>These step seperate the output from the previous step into the wgt file for each tissues that can be input to the Fusion Association testing pipeline</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="c1"># Create wgs.RDat file</span>
+<span class="n">[fusion_tf_cv_1]</span>
+<span class="n">input</span><span class="o">:</span>  <span class="n">molecular_pheno_dir</span><span class="p">,</span><span class="n">for_each</span> <span class="o">=</span> <span class="s">&#39;regions&#39;</span>
+<span class="n">output</span><span class="o">:</span> <span class="nf">dynamic</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;{wd:a}/wgt/*/{name_prefix}.{_regions[0]}.mv.wgt.RDat&#39;</span><span class="p">)</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;12h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;6G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_index}&#39;</span>
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span><span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_input[0]}.split.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_input[0]}.split.stderr&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;plink2R&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;purrr&quot;</span><span class="p">)</span>
+    <span class="c1">#Load the input</span>
+    <span class="n">genos</span> <span class="o">=</span> <span class="nf">read_plink</span><span class="p">(</span><span class="s">&#39;$[wd:a]/cache/$[name_prefix].$[_regions[0]].merged&#39;</span><span class="p">)</span>
+    <span class="n">molecular_pheno</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&#39;$[_input[0]]&#39;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&#39;\t&#39;</span><span class="p">)</span>
+    <span class="nf">load</span><span class="p">(</span><span class="s">&#39;$[wd:a]/result/$[name_prefix].$[_regions[0]].mv_susie.model.cv.RData&#39;</span><span class="p">)</span>
+    <span class="c1">#Get all the components</span>
+    <span class="n">pval</span> <span class="o">=</span> <span class="n">full_model</span><span class="o">$</span><span class="n">pval</span>
+    <span class="n">rsq</span> <span class="o">=</span> <span class="n">full_model</span><span class="o">$</span><span class="n">r2</span>
+    
+    <span class="n">hsq.pv</span> <span class="o">=</span> <span class="kc">NA</span>
+    <span class="n">N.tot</span> <span class="o">=</span> <span class="nf">nrow</span><span class="p">(</span><span class="n">genos</span><span class="o">$</span><span class="n">bed</span><span class="p">)</span>
+    
+    <span class="n">cv.performance_tol</span> <span class="o">=</span> <span class="nf">rbind</span><span class="p">(</span>
+    <span class="n">rsq</span> <span class="o">=</span> <span class="n">rsq</span><span class="p">,</span> 
+    <span class="n">pval</span> <span class="o">=</span> <span class="n">pval</span>
+    <span class="p">)</span>
+    <span class="c1">## Filter out the snps that are not in the bim for consistancy</span>
+    <span class="n">snps</span> <span class="o">=</span> <span class="n">genos</span><span class="o">$</span><span class="n">bim</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">(</span><span class="n">V2</span> <span class="o">%in%</span><span class="n">full_model</span><span class="o">$</span><span class="n">snps</span> <span class="p">)</span>
+    
+    <span class="c1"># Create output for each tissue saperately</span>
+
+    <span class="nf">for</span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">molecular_pheno</span><span class="p">)</span> <span class="p">){</span>
+    <span class="n">wgt.matrix</span> <span class="o">=</span> <span class="n">full_model</span><span class="o">$</span><span class="n">coef[2</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">full_model</span><span class="o">$</span><span class="n">coef</span><span class="p">),</span><span class="n">i]</span><span class="o">%&gt;%</span><span class="nf">as.matrix</span><span class="p">()</span>
+    <span class="n">hsq</span> <span class="o">=</span> <span class="n">full_model</span><span class="o">$</span><span class="n">hsq[i]</span>
+    <span class="n">dir</span> <span class="o">=</span> <span class="s">&quot;$[wd:a]/wgt/&quot;</span>
+    <span class="n">tis</span> <span class="o">=</span> <span class="nf">read.table</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="n">molecular_pheno[[i</span><span class="p">,</span><span class="m">1</span><span class="n">]]</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="n">as.is</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span>
+    <span class="n">tis</span> <span class="o">=</span> <span class="n">tis[</span><span class="nf">[length</span><span class="p">(</span><span class="n">tis</span><span class="p">)</span><span class="n">]]</span>
+    <span class="n">sur</span> <span class="o">=</span> <span class="s">&quot;/$[name_prefix].$[_regions[0]].mv.cv.wgt.RDat&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nf">paste</span><span class="p">(</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span><span class="nf">c</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">tis</span><span class="p">,</span><span class="n">sur</span><span class="p">))</span>
+    <span class="n">cv.performance</span> <span class="o">=</span> <span class="n">cv.performance_tol[</span><span class="p">,</span><span class="n">i]</span><span class="o">%&gt;%</span><span class="nf">as.matrix</span><span class="p">()</span>
+    <span class="nf">colnames</span><span class="p">(</span><span class="n">cv.performance</span><span class="p">)</span> <span class="o">=</span> <span class="s">&quot;mv_susie&quot;</span>
+    <span class="c1"># make the folders</span>
+    <span class="n">cmd0</span> <span class="o">=</span> <span class="nf">paste</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;mkdir &quot;</span><span class="p">,</span><span class="n">dir</span><span class="p">),</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="nf">system</span><span class="p">(</span><span class="n">cmd0</span><span class="p">,</span><span class="n">ignore.stdout</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span><span class="n">ignore.stderr</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+    <span class="n">cmd1</span> <span class="o">=</span> <span class="nf">paste</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;mkdir &quot;</span><span class="p">,</span><span class="n">dir</span><span class="p">,</span><span class="n">tis</span><span class="p">),</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="nf">system</span><span class="p">(</span><span class="n">cmd1</span><span class="p">,</span><span class="n">ignore.stdout</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span><span class="n">ignore.stderr</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+    <span class="c1"># save the files</span>
+    <span class="nf">save</span><span class="p">(</span>
+    <span class="n">wgt.matrix</span><span class="p">,</span>
+    <span class="n">snps</span><span class="p">,</span>
+    <span class="n">cv.performance</span><span class="p">,</span>
+    <span class="n">hsq</span><span class="p">,</span> <span class="n">hsq.pv</span><span class="p">,</span> <span class="n">N.tot</span><span class="p">,</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="n">out</span>
+    <span class="p">)</span>    <span class="p">}</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_text output_error">
+<pre>
+Error in parse(text = x, srcfile = src): &lt;text&gt;:2:1: unexpected &#39;[&#39;
+1: # Create wgs.RDat file
+2: [
+   ^
+Traceback:
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="c1"># Create wgs.RDat file</span>
+<span class="n">[fusion_tf_1]</span>
+<span class="n">input</span><span class="o">:</span>  <span class="n">molecular_pheno_dir</span><span class="p">,</span><span class="n">for_each</span> <span class="o">=</span> <span class="s">&#39;regions&#39;</span>
+<span class="n">output</span><span class="o">:</span> <span class="nf">dynamic</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;{wd:a}/wgt/*/{name_prefix}.{_regions[0]}.mv.wgt.RDat&#39;</span><span class="p">)</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;12h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;6G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_index}&#39;</span>
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span><span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_input[0]}.split.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_input[0]}.split.stderr&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;plink2R&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;purrr&quot;</span><span class="p">)</span>
+    <span class="c1">#Load the input</span>
+    <span class="n">genos</span> <span class="o">=</span> <span class="nf">read_plink</span><span class="p">(</span><span class="s">&#39;$[wd:a]/cache/$[name_prefix].$[_regions[0]].merged&#39;</span><span class="p">)</span>
+    <span class="n">molecular_pheno</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&#39;$[_input[0]]&#39;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&#39;\t&#39;</span><span class="p">)</span>
+    <span class="n">full_model</span> <span class="o">=</span> <span class="nf">attach</span><span class="p">(</span><span class="s">&#39;$[wd:a]/result/$[name_prefix].$[_regions[0]].mv_susie.model.RData&#39;</span><span class="p">)</span><span class="o">$</span><span class="n">m_</span><span class="o">$</span><span class="n">[_regions[0]]</span>
+    <span class="c1">#Get all the components</span>
+    <span class="n">pval</span> <span class="o">=</span> <span class="kc">NA</span>
+    <span class="n">rsq</span> <span class="o">=</span> <span class="kc">NA</span>
+    <span class="n">hsq.pv</span> <span class="o">=</span> <span class="kc">NA</span>
+    <span class="n">N.tot</span> <span class="o">=</span> <span class="nf">nrow</span><span class="p">(</span><span class="n">genos</span><span class="o">$</span><span class="n">bed</span><span class="p">)</span>
+    <span class="n">cv.performance_tol</span> <span class="o">=</span> <span class="nf">rbind</span><span class="p">(</span>
+    <span class="n">rsq</span> <span class="o">=</span> <span class="n">rsq</span><span class="p">,</span> 
+    <span class="n">pval</span> <span class="o">=</span> <span class="n">pval</span>
+    <span class="p">)</span>
+    <span class="c1">## Filter out the snps that are not in the bim for consistancy</span>
+    <span class="n">snps</span> <span class="o">=</span> <span class="n">genos</span><span class="o">$</span><span class="n">bim</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">(</span><span class="n">V2</span> <span class="o">%in%</span><span class="n">full_model</span><span class="o">$</span><span class="n">snps</span> <span class="p">)</span>
+    
+    <span class="c1"># Create output for each tissue saperately</span>
+
+    <span class="nf">for</span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">molecular_pheno</span><span class="p">)</span> <span class="p">){</span>
+    <span class="n">wgt.matrix</span> <span class="o">=</span> <span class="n">full_model</span><span class="o">$</span><span class="n">coef[2</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">full_model</span><span class="o">$</span><span class="n">coef</span><span class="p">),</span><span class="n">i]</span><span class="o">%&gt;%</span><span class="nf">as.matrix</span><span class="p">()</span>
+    <span class="n">hsq</span> <span class="o">=</span> <span class="n">full_model</span><span class="o">$</span><span class="n">hsq[i]</span>
+    <span class="n">dir</span> <span class="o">=</span> <span class="s">&quot;$[wd:a]/wgt/&quot;</span>
+    <span class="n">tis</span> <span class="o">=</span> <span class="nf">read.table</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="n">molecular_pheno[[i</span><span class="p">,</span><span class="m">1</span><span class="n">]]</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="n">as.is</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span>
+    <span class="n">tis</span> <span class="o">=</span> <span class="n">tis[</span><span class="nf">[length</span><span class="p">(</span><span class="n">tis</span><span class="p">)</span><span class="n">]]</span>
+    <span class="n">sur</span> <span class="o">=</span> <span class="s">&quot;/$[name_prefix].$[_regions[0]].mv.wgt.RDat&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nf">paste</span><span class="p">(</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span><span class="nf">c</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">tis</span><span class="p">,</span><span class="n">sur</span><span class="p">))</span>
+    <span class="n">cv.performance</span> <span class="o">=</span> <span class="n">cv.performance_tol</span>
+    <span class="nf">colnames</span><span class="p">(</span><span class="n">cv.performance</span><span class="p">)</span> <span class="o">=</span> <span class="s">&quot;mv_susie&quot;</span>
+    <span class="c1"># make the folders</span>
+    <span class="n">cmd0</span> <span class="o">=</span> <span class="nf">paste</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;mkdir &quot;</span><span class="p">,</span><span class="n">dir</span><span class="p">),</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="nf">system</span><span class="p">(</span><span class="n">cmd0</span><span class="p">,</span><span class="n">ignore.stdout</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span><span class="n">ignore.stderr</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+    <span class="n">cmd1</span> <span class="o">=</span> <span class="nf">paste</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;mkdir &quot;</span><span class="p">,</span><span class="n">dir</span><span class="p">,</span><span class="n">tis</span><span class="p">),</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="nf">system</span><span class="p">(</span><span class="n">cmd1</span><span class="p">,</span><span class="n">ignore.stdout</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span><span class="n">ignore.stderr</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+    <span class="c1"># save the files</span>
+    <span class="nf">save</span><span class="p">(</span>
+    <span class="n">wgt.matrix</span><span class="p">,</span>
+    <span class="n">snps</span><span class="p">,</span>
+    <span class="n">cv.performance</span><span class="p">,</span>
+    <span class="n">hsq</span><span class="p">,</span> <span class="n">hsq.pv</span><span class="p">,</span> <span class="n">N.tot</span><span class="p">,</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="n">out</span>
+    <span class="p">)</span>    <span class="p">}</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[fusion_tf_cv_2]</span>
+<span class="n">molecular_pheno</span> <span class="o">=</span> <span class="nf">[x.strip</span><span class="p">()</span><span class="nf">.split</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span> <span class="n">for</span> <span class="n">x</span> <span class="n">in</span> <span class="nf">open</span><span class="p">(</span><span class="n">molecular_pheno_dir</span><span class="p">)</span><span class="nf">.readlines</span><span class="p">()</span> <span class="n">if</span> <span class="nf">x.strip</span><span class="p">()</span> <span class="n">and</span> <span class="n">not</span> <span class="nf">x.strip</span><span class="p">()</span><span class="nf">.startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)</span><span class="n">]</span>
+<span class="n">input</span><span class="o">:</span> <span class="n">region_list</span><span class="p">,</span> <span class="n">for_each</span> <span class="o">=</span> <span class="s">&quot;molecular_pheno&quot;</span>
+<span class="n">output</span><span class="o">:</span> <span class="n">f</span><span class="s">&#39;{wd:a}/wgt/{_molecular_pheno[1]}/All_wgt_list.txt&#39;</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;12h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;6G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_index}&#39;</span>
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span><span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;purrr&quot;</span><span class="p">)</span>
+    <span class="c1"># Load the template</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&#39;$[_input]&#39;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+    <span class="c1"># Create name</span>
+    <span class="n">dir</span> <span class="o">=</span> <span class="s">&quot;$[wd:a]/wgt/&quot;</span>
+    <span class="n">tis</span> <span class="o">=</span> <span class="s">&quot;$[_molecular_pheno[1]]&quot;</span>
+    <span class="n">pre</span> <span class="o">=</span> <span class="s">&quot;/$[name_prefix].&quot;</span>
+    <span class="n">sur</span> <span class="o">=</span> <span class="s">&quot;.mv.cv.wgt.RDat&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">temp</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+    <span class="n">WGT</span> <span class="o">=</span> <span class="nf">map_chr</span><span class="p">(</span><span class="n">`#region`</span><span class="p">,</span><span class="o">~</span><span class="nf">paste</span><span class="p">(</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">tis</span><span class="p">,</span><span class="n">pre</span><span class="p">,</span><span class="n">.x</span><span class="p">,</span><span class="n">sur</span><span class="p">)))</span>
+    <span class="p">)</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="n">WGT</span><span class="p">,</span><span class="n">ID</span> <span class="o">=</span> <span class="n">`#region`</span><span class="p">,</span><span class="n">CHR</span> <span class="o">=</span> <span class="n">chr</span><span class="p">,</span> <span class="n">P0</span> <span class="o">=</span> <span class="n">start_position</span><span class="p">,</span> <span class="n">P1</span> <span class="o">=</span> <span class="n">end_position</span><span class="p">)</span>
+    <span class="n">res</span><span class="o">%&gt;%</span><span class="nf">write_delim</span><span class="p">(</span><span class="s">&quot;$[_output]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">[fusion_tf_2]</span>
+<span class="n">molecular_pheno</span> <span class="o">=</span> <span class="nf">[x.strip</span><span class="p">()</span><span class="nf">.split</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span> <span class="n">for</span> <span class="n">x</span> <span class="n">in</span> <span class="nf">open</span><span class="p">(</span><span class="n">molecular_pheno_dir</span><span class="p">)</span><span class="nf">.readlines</span><span class="p">()</span> <span class="n">if</span> <span class="nf">x.strip</span><span class="p">()</span> <span class="n">and</span> <span class="n">not</span> <span class="nf">x.strip</span><span class="p">()</span><span class="nf">.startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)</span><span class="n">]</span>
+<span class="n">input</span><span class="o">:</span> <span class="n">region_list</span><span class="p">,</span> <span class="n">for_each</span> <span class="o">=</span> <span class="s">&quot;molecular_pheno&quot;</span>
+<span class="n">output</span><span class="o">:</span> <span class="n">f</span><span class="s">&#39;{wd:a}/wgt/{_molecular_pheno[1]}/All_wgt_list.txt&#39;</span>
+<span class="n">task</span><span class="o">:</span> <span class="n">trunk_workers</span> <span class="o">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">trunk_size</span> <span class="o">=</span> <span class="n">job_size</span><span class="p">,</span> <span class="n">walltime</span> <span class="o">=</span> <span class="s">&#39;12h&#39;</span><span class="p">,</span>  <span class="n">mem</span> <span class="o">=</span> <span class="s">&#39;6G&#39;</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{step_name}_{_index}&#39;</span>
+<span class="n">R</span><span class="o">:</span> <span class="n">expand</span><span class="o">=</span> <span class="s">&quot;$[ ]&quot;</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stderr&#39;</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;{_output}.stdout&#39;</span><span class="p">,</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;tibble&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;readr&quot;</span><span class="p">)</span>
+    <span class="nf">library</span><span class="p">(</span><span class="s">&quot;purrr&quot;</span><span class="p">)</span>
+    <span class="c1"># Load the template</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="nf">read_delim</span><span class="p">(</span><span class="s">&#39;$[_input]&#39;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+    <span class="c1"># Create name</span>
+    <span class="n">dir</span> <span class="o">=</span> <span class="s">&quot;$[wd:a]/wgt/&quot;</span>
+    <span class="n">tis</span> <span class="o">=</span> <span class="s">&quot;$[_molecular_pheno[1]]&quot;</span>
+    <span class="n">pre</span> <span class="o">=</span> <span class="s">&quot;/$[name_prefix].&quot;</span>
+    <span class="n">sur</span> <span class="o">=</span> <span class="s">&quot;.mv.wgt.RDat&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">temp</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+    <span class="n">WGT</span> <span class="o">=</span> <span class="nf">map_chr</span><span class="p">(</span><span class="n">`#region`</span><span class="p">,</span><span class="o">~</span><span class="nf">paste</span><span class="p">(</span><span class="n">collapse</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">tis</span><span class="p">,</span><span class="n">pre</span><span class="p">,</span><span class="n">.x</span><span class="p">,</span><span class="n">sur</span><span class="p">)))</span>
+    <span class="p">)</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="n">WGT</span><span class="p">,</span><span class="n">ID</span> <span class="o">=</span> <span class="n">`#region`</span><span class="p">,</span><span class="n">CHR</span> <span class="o">=</span> <span class="n">chr</span><span class="p">,</span> <span class="n">P0</span> <span class="o">=</span> <span class="n">start_position</span><span class="p">,</span> <span class="n">P1</span> <span class="o">=</span> <span class="n">end_position</span><span class="p">)</span>
+    <span class="n">res</span><span class="o">%&gt;%</span><span class="nf">write_delim</span><span class="p">(</span><span class="s">&quot;$[_output]&quot;</span><span class="p">,</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<hr>
+&copy 2020-2021 Hao Sun & Gao Wang, Department of Neurology, Columbia University
+<p><small>Exported from <a href="http://github.com/hsun3163/jnbinder/blob/93314c88684ab4704a5db1f03c434d85b038a8f8/workflow/mv_susie.ipynb"><code>workflow/mv_susie.ipynb</code></a> committed by Gao Wang on Thu May 6 00:26:26 2021 <a href="http://github.com/hsun3163/jnbinder/commit/93314c88684ab4704a5db1f03c434d85b038a8f8">revision 1, 93314c8</a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+</div>
+</div>
+</body>
+</html>

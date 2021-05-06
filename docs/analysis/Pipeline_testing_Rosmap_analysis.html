@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ipynb_website:version" content="0.9.7" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" type="text/css" href="../css/jt.css">
+
+<link rel="stylesheet" type="text/css" href="../css/toc2.css">
+
+<link href="../site_libs/jqueryui-1.11.4/jquery-ui.css">
+<link rel="stylesheet" href="../site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="../site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+
+<link rel="stylesheet"
+      href="../site_libs/highlightjs/null.min.css"
+      type="text/css" />
+
+<script src="../site_libs/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+<script src="../js/doc_toc.js"></script>
+<script src="../js/docs.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+        },
+        "HTML-CSS": {
+            preferredFont: "TeX",
+            availableFonts: ["TeX"],
+            styles: {
+                scale: 110,
+                ".MathJax_Display": {
+                    "font-size": "110%",
+                }
+            }
+        }
+    });
+</script>
+<script>
+function filterDataFrame(id) {
+    var input = document.getElementById("search_" + id);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("dataframe_" + id);
+    var tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (var i = 1; i < tr.length; i++) {
+        for (var j = 0; j < tr[i].cells.length; ++j) {
+            var matched = false;
+            if (tr[i].cells[j].innerHTML.toUpperCase().indexOf(filter) != -1) {
+                tr[i].style.display = "";
+                matched = true
+                break;
+            }
+            if (!matched)
+                tr[i].style.display = "none";
+        }
+    }
+}
+function sortDataFrame(id, n, dtype) {
+    var table = document.getElementById("dataframe_" + id);
+    var tb = table.tBodies[0]; // use `<tbody>` to ignore `<thead>` and `<tfoot>` rows
+    var tr = Array.prototype.slice.call(tb.rows, 0); // put rows into array
+    if (dtype === 'numeric') {
+        var fn = function(a, b) { 
+            return parseFloat(a.cells[n].textContent) <= parseFloat(b.cells[n].textContent) ? -1 : 1;
+        }
+    } else {
+        var fn = function(a, b) {
+            var c = a.cells[n].textContent.trim().localeCompare(b.cells[n].textContent.trim()); 
+            return c > 0 ? 1 : (c < 0 ? -1 : 0) }
+    }
+    var isSorted = function(array, fn) {
+        if (array.length < 2)
+            return 1;
+        var direction = fn(array[0], array[1]); 
+        for (var i = 1; i < array.length - 1; ++i) {
+            var d = fn(array[i], array[i+1]);
+            if (d == 0)
+                continue;
+            else if (direction == 0)
+                direction = d;
+            else if (direction != d)
+                return 0;
+            }
+        return direction;
+    }
+    var sorted = isSorted(tr, fn);
+    if (sorted == 1 || sorted == -1) {
+        // if sorted already, reverse it
+        for(var i = tr.length - 1; i >= 0; --i)
+            tb.appendChild(tr[i]); // append each row in order
+    } else {
+        tr = tr.sort(fn);
+        for(var i = 0; i < tr.length; ++i)
+            tb.appendChild(tr[i]); // append each row in order
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function(){
+            var cfg={'threshold':3,     // depth of toc (number of levels)
+             'number_sections': false,
+             'toc_cell': false,          // useless here
+             'toc_window_display': true, // display the toc window
+             "toc_section_display": "block", // display toc contents in the window
+             'sideBar':true,       // sidebar or floating window
+             'navigate_menu':false       // navigation menu (only in liveNotebook -- do not change)
+            }
+            var st={};                  // some variables used in the script
+            st.rendering_toc_cell = false;
+            st.config_loaded = false;
+            st.extension_initialized=false;
+            st.nbcontainer_marginleft = $('#notebook-container').css('margin-left')
+            st.nbcontainer_marginright = $('#notebook-container').css('margin-right')
+            st.nbcontainer_width = $('#notebook-container').css('width')
+            st.oldTocHeight = undefined
+            st.cell_toc = undefined;
+            st.toc_index=0;
+            // fire the main function with these parameters
+            table_of_contents(cfg, st);
+            var file=analysisDict[$("h1:first").attr("id")];
+            $("#toc-level0 a").css("color","#126dce");
+            $('a[href="#'+$("h1:first").attr("id")+'"]').hide()
+            var docs=analysisArray;
+            var docs_map=analysisArrayMap;
+            var pos=analysisArray.indexOf(file);
+            for (var a=pos;a>=0;a--){
+                  $('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>').insertBefore("#toc-level0 li:eq(0)");
+            }
+            $('a[href="'+file+'.html'+'"]').css("color","#126dce");
+            for (var a=pos+1;a<docs.length;a++){
+                  $(".toc #toc-level0").append('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>');
+            }
+            // $("#toc-header").hide(); // comment out because it prevents search bar from displaying
+    });
+</script>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+  // mark it active
+  menuAnchor.parent().addClass('active');
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+<div class="container-fluid main-container">
+<!-- tabsets -->
+<script src="../site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+
+
+<title>Multi-tissue brain TWAS</title>
+
+<style type = "text/css">
+body {
+  font-family: "Droid Sans";
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<!-- code folding -->
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">Multi-tissue brain TWAS</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+<li>
+  <a href="../index.html">Overview</a>
+</li>
+        
+<li>
+  <a href="../writeup.html">Writeup</a>
+</li>
+        
+<li>
+  <a href="../analysis.html">Analysis</a>
+</li>
+        
+<li>
+  <a href="../workflow.html">Workflow</a>
+</li>
+        
+      </ul>
+        
+<ul class="nav navbar-nav navbar-right">
+<li>
+   <a href="http://github.com/hsun3163/jnbinder"> <span class="fa fa-github"></span> </a>
+</li>
+</ul>
+        
+      </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="ROSMAP-Data-TWAS">ROSMAP Data TWAS<a class="anchor-link" href="#ROSMAP-Data-TWAS">&#182;</a></h1><h2 id="Motivation">Motivation<a class="anchor-link" href="#Motivation">&#182;</a></h2><p>After the finalization of the pipeline, it is time to apply our pipeline to the ROSMAP data to understand how the gene expression in posterior cingulate cortex(PCC) associated with the Alzhemer diseases. Further detail on why use PCC will be added.</p>
+<h2 id="Data-set">Data set<a class="anchor-link" href="#Data-set">&#182;</a></h2><p>The gene expression data set used is geneTpmResidualsAgeGenderAdj.txt: residuals after regressing out significant covariates associated with RNA-seq data like age, sex, batch, and technical covariates.</p>
+<p>The genotype data is</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Tools">Tools<a class="anchor-link" href="#Tools">&#182;</a></h2><p>The tools used in this analysis is the "SOS_ROSMAP_gene_exp_processing" for data preprocessing and the "twas_fusion" pipeline for computing and conducting actual analysis. Developed on the fusion foundation, this pipeline takes in gene expression data ans SNP to compute the weight for the follow ups Correlation analysis, and then the gwas association between SNP and the trait are modified by said genes.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">sos</span> <span class="n">run</span> <span class="o">../</span><span class="n">Workflow</span><span class="o">/</span><span class="n">SOS_weight_cpt_template</span><span class="o">.</span><span class="n">ipynb</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>usage: sos run ../Workflow/SOS_weight_cpt_template.ipynb
+               [workflow_name | -t targets] [options] [workflow_options]
+  workflow_name:        Single or combined workflows defined in this script
+  targets:              One or more targets to generate
+  options:              Single-hyphen sos parameters (see &#34;sos run -h&#34; for details)
+  workflow_options:     Double-hyphen workflow-specific parameters
+
+Workflows:
+  STEP
+
+Global Workflow Options:
+  --GCTA &#39;/Users/haosun/Documents/WG_Reasearch_Assisstant/Fusion/install/fusion_twas-master/gcta_1.93.2beta_mac/gcta64&#39;
+                        MAKE SURE FUSION.compute_weights.R IS IN YOUR PATH FILL
+                        IN THESE PATHS For mac user, the mac version of GCTA
+                        shall be downloaded saperately, the one came with the
+                        Fusion package will not work.
+  --PLINK &#39;/Users/haosun/Documents/WG_Reasearch_Assisstant/Fusion/plink_mac_20200616/plink&#39;
+  --GEMMA &#39;/Users/haosun/Documents/WG_Reasearch_Assisstant/Fusion/install/fusion_twas-master/GEMMA&#39;
+  --compute-weight-rscp &#39;/Users/haosun/Documents/WG_Reasearch_Assisstant/Fusion/install/fusion_twas-master/FUSION.compute_weights.mod.R&#39;
+                        Required the customized fusion.compute_weight.mod.R
+                        script, other wise will not work
+  --gene-exp-file &#39;/Users/haosun/Documents/WG_Reasearch_Assisstant/Fusion/install/fusion_twas-master/Testing/Data/GD462.hsq_succ.test.txt&#39;
+                        Path to the input data,must include the name of the file
+                        itself (Phenotype data,)
+  --sumstat-file &#39;&#39;
+                        (sumstats data)
+  --wd VAL (as path, required)
+                        PATH TO WORKING DIRECTORY
+  --genotype-file-directory VAL (as path, required)
+                        PATH TO DIRECTORY CONTAINING genotype_file_directory
+                        DATA (FROM FUSION WEBSITE or https://data.broadinstitute
+                        .org/alkesgroup/FUSION/genotype_file_directory.tar.bz2)
+  --genotype-prefix VAL (as path, required)
+                        PATH TO PREFIX FOR GEUVADIS GENOTYPES SPLIT BY
+                        CHROMOSOME SUBSAMPLE THESE TO THE
+                        genotype_file_directory SNPS FOR EFFICIENCY
+  --chrom 3 (as int)
+                        Specify the column in the genexpression file that
+                        contains chromosome
+  --gene-start VAL (as int, required)
+                        If both the start and end region are specified, then
+                        their column can be specified saperately
+  --gene-end VAL (as int, required)
+  --gene-name 1 (as int)
+                        Specify the column in the genexpression file that
+                        contains the name of the gene
+  --window 50000 (as int)
+                        Specify the scanning window for the gene position, set
+                        default to 50000 if start = end
+
+Sections
+  STEP_0:               Make the Paitient_ID File
+  STEP_1:               Make folder structure for the pipeline
+  STEP_2:
+  STEP_3:               Actual weight computation analysis
+  STEP_4:               Clean up of the redundency file
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="c1">## Test pipeline with test data</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre><span class="ansi-red-intense-fg">ERROR</span>: <span class="ansi-red-intense-fg">one of the arguments --assoc_test_rscp --assoc-test-rscp is required</span>
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Data-wrangling">Data wrangling<a class="anchor-link" href="#Data-wrangling">&#182;</a></h1><p>Before conducting analysis on the ROSMAP data, the expression file was modified into what is needed for the pipeline using the following command. The tissue of dlpfc was used for the larger sample size (1093 preprocessed) on the cluster.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">sos</span> <span class="n">run</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">Workflow</span><span class="o">/</span><span class="n">SOS_ROSMAP_gene_exp_processing</span><span class="o">.</span><span class="n">ipynb</span> \
+    <span class="o">--</span><span class="n">ref</span> <span class="s2">&quot;/home/hs3163/Project/Rosmap/data/patient_key_WGS.txt&quot;</span> \
+    <span class="o">--</span><span class="n">name_col</span> <span class="mi">2</span> \
+    <span class="o">--</span><span class="n">real_name_col</span> <span class="mi">1</span> \
+    <span class="o">--</span><span class="n">gene_exp</span> <span class="s2">&quot;/mnt/mfs/hgrcgrid/shared/DeJagerLab/datasets/rosmap/rnaseq/dlpfcTissue/batch0-m5/values/residuals/geneTpmResidualsAgeGenderAdj.txt&quot;</span> \
+    <span class="o">--</span><span class="n">start_at</span> <span class="mi">2</span> \
+    <span class="o">--</span><span class="n">output</span> <span class="s2">&quot;/home/hs3163/Project/Rosmap/data/gene_exp/DLPFC&quot;</span> \
+    <span class="o">-</span><span class="n">J</span> <span class="mi">6</span> <span class="o">-</span><span class="n">c</span> <span class="o">~/</span><span class="n">system_file</span><span class="o">/</span><span class="n">farnam</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>
+Attaching package: ‘dplyr’
+
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+Parsed with column specification:
+cols(
+  .default = col_double(),
+  `#Chr` = <span class="ansi-red-fg">col_character()</span>,
+  ID = <span class="ansi-red-fg">col_character()</span>
+)
+
+See spec(...) for full column specifications.
+
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>'#Chr'</li><li>'start'</li><li>'end'</li><li>'ID'</li><li>'NA18486'</li><li>'NA18487'</li><li>'NA18488'</li><li>'NA18489'</li><li>'NA18498'</li><li>'NA18499'</li><li>'NA18502'</li><li>'NA18505'</li><li>'NA18508'</li><li>'NA18510'</li><li>'NA18511'</li><li>'NA18517'</li><li>'NA18519'</li><li>'NA18520'</li><li>'NA18858'</li><li>'NA18861'</li><li>'NA18867'</li><li>'NA18868'</li><li>'NA18870'</li><li>'NA18873'</li><li>'NA18907'</li><li>'NA18909'</li><li>'NA18910'</li><li>'NA18912'</li><li>'NA18916'</li><li>'NA18917'</li><li>'NA18923'</li><li>'NA18933'</li><li>'NA18934'</li><li>'NA19093'</li><li>'NA19095'</li><li>'NA19096'</li><li>'NA19098'</li><li>'NA19099'</li><li>'NA19102'</li><li>'NA19107'</li><li>'NA19108'</li><li>'NA19113'</li><li>'NA19114'</li><li>'NA19116'</li><li>'NA19117'</li><li>'NA19118'</li><li>'NA19119'</li><li>'NA19121'</li><li>'NA19129'</li><li>'NA19130'</li><li>'NA19131'</li><li>'NA19137'</li><li>'NA19138'</li><li>'NA19141'</li><li>'NA19143'</li><li>'NA19144'</li><li>'NA19146'</li><li>'NA19147'</li><li>'NA19149'</li><li>'NA19150'</li><li>'NA19152'</li><li>'NA19153'</li><li>'NA19159'</li><li>'NA19171'</li><li>'NA19172'</li><li>'NA19175'</li><li>'NA19184'</li><li>'NA19185'</li><li>'NA19189'</li><li>'NA19190'</li><li>'NA19197'</li><li>'NA19198'</li><li>'NA19200'</li><li>'NA19201'</li><li>'NA19204'</li><li>'NA19206'</li><li>'NA19207'</li><li>'NA19209'</li><li>'NA19210'</li><li>'NA19213'</li><li>'NA19222'</li><li>'NA19223'</li><li>'NA19225'</li><li>'NA19235'</li><li>'NA19236'</li><li>'NA19247'</li><li>'NA19248'</li><li>'NA19256'</li><li>'NA19257'</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The script used to create the genotype_list file is as followed. The created file was stored at ~/Project/Rosmap/data along with other table requied for the analysis.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<span class="n">library</span><span class="p">(</span><span class="n">tibble</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">tibble</span><span class="p">(</span>
+  <span class="nb">chr</span> <span class="o">=</span> <span class="n">c</span><span class="p">(</span><span class="n">seq</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">23</span><span class="p">))</span>
+<span class="p">)</span><span class="o">%&gt;%</span><span class="n">mutate</span><span class="p">(</span>
+  <span class="nb">dir</span> <span class="o">=</span> <span class="n">paste</span><span class="p">(</span><span class="s2">&quot;/mnt/mfs/hgrcgrid/shared/DeJagerLab/datasets/rosmap/wgs/ampad/variants/snvCombinedPlink/chr&quot;</span><span class="p">,</span><span class="nb">chr</span><span class="p">,</span><span class="s2">&quot;.bed&quot;</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">))</span><span class="o">%&gt;%</span>
+    <span class="n">select</span><span class="p">(</span><span class="s2">&quot;#chr&quot;</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">,</span><span class="nb">dir</span><span class="p">)</span><span class="o">%&gt;%</span>
+    <span class="n">readr</span><span class="p">::</span><span class="n">write_tsv</span><span class="p">(</span> <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/Rosmap_wgs_genotype_list.txt&quot;</span><span class="p">,</span> <span class="n">na</span> <span class="o">=</span> <span class="s2">&quot;NA&quot;</span><span class="p">,</span> <span class="n">append</span> <span class="o">=</span> <span class="n">FALSE</span><span class="p">,</span> <span class="n">col_names</span> <span class="o">=</span> <span class="n">TRUE</span><span class="p">,</span> <span class="n">quote_escape</span> <span class="o">=</span> <span class="s2">&quot;double&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>
+Attaching package: ‘dplyr’
+
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="c1">#With the path changed, the scripts to generate the new Genotype_list is as followed</span>
+<span class="n">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<span class="n">library</span><span class="p">(</span><span class="n">tibble</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">tibble</span><span class="p">(</span>
+  <span class="nb">chr</span> <span class="o">=</span> <span class="n">c</span><span class="p">(</span><span class="n">seq</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">23</span><span class="p">))</span>
+<span class="p">)</span><span class="o">%&gt;%</span><span class="n">mutate</span><span class="p">(</span>
+  <span class="nb">dir</span> <span class="o">=</span> <span class="n">paste</span><span class="p">(</span><span class="s2">&quot;/mnt/mfs/hgrcgrid/shared/DeJagerLab/datasets/rosmap/wgs/ampad/variants/snvCombinedPlink/chr&quot;</span><span class="p">,</span><span class="nb">chr</span><span class="p">,</span><span class="s2">&quot;.bed&quot;</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">))</span><span class="o">%&gt;%</span>
+    <span class="n">select</span><span class="p">(</span><span class="s2">&quot;#chr&quot;</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">,</span><span class="nb">dir</span><span class="p">)</span><span class="o">%&gt;%</span>
+    <span class="n">readr</span><span class="p">::</span><span class="n">write_tsv</span><span class="p">(</span> <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/Rosmap_wgs_genotype_list.txt&quot;</span><span class="p">,</span> <span class="n">na</span> <span class="o">=</span> <span class="s2">&quot;NA&quot;</span><span class="p">,</span> <span class="n">append</span> <span class="o">=</span> <span class="n">FALSE</span><span class="p">,</span> <span class="n">col_names</span> <span class="o">=</span> <span class="n">TRUE</span><span class="p">,</span> <span class="n">quote_escape</span> <span class="o">=</span> <span class="s2">&quot;double&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="c1"># A fake genotype list file was created for debug purpose</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">tibble</span><span class="p">(</span>
+  <span class="nb">chr</span> <span class="o">=</span> <span class="n">c</span><span class="p">(</span><span class="n">seq</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">23</span><span class="p">))</span>
+<span class="p">)</span><span class="o">%&gt;%</span><span class="n">mutate</span><span class="p">(</span>
+  <span class="nb">dir</span> <span class="o">=</span> <span class="n">paste</span><span class="p">(</span><span class="s2">&quot;~/test/chr&quot;</span><span class="p">,</span><span class="nb">chr</span><span class="p">,</span><span class="s2">&quot;.bed&quot;</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">))</span><span class="o">%&gt;%</span>
+    <span class="n">select</span><span class="p">(</span><span class="s2">&quot;#chr&quot;</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">,</span><span class="nb">dir</span><span class="p">)</span><span class="o">%&gt;%</span>
+    <span class="n">readr</span><span class="p">::</span><span class="n">write_tsv</span><span class="p">(</span> <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/fake_Rosmap_wgs_genotype_list.txt&quot;</span><span class="p">,</span> <span class="n">na</span> <span class="o">=</span> <span class="s2">&quot;NA&quot;</span><span class="p">,</span> <span class="n">append</span> <span class="o">=</span> <span class="n">FALSE</span><span class="p">,</span> <span class="n">col_names</span> <span class="o">=</span> <span class="n">TRUE</span><span class="p">,</span> <span class="n">quote_escape</span> <span class="o">=</span> <span class="s2">&quot;double&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Running-the-workflow">Running the workflow<a class="anchor-link" href="#Running-the-workflow">&#182;</a></h2><p>The following command was used to invoke the twas_fusion pipeline to firstly compute the weight for the ROSMAP data. During the testing period, the the input has 30 genes and the job_size is set to 5.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">nohup</span> <span class="n">sos</span> <span class="n">run</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">Workflow</span><span class="o">/</span><span class="n">twas_fusion</span><span class="o">.</span><span class="n">ipynb</span> <span class="n">compute_wgt</span>  \
+  <span class="o">--</span><span class="n">gwas_sumstat</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">sum_stat</span><span class="o">.</span><span class="n">sumstats</span> \
+  <span class="o">--</span><span class="n">molecular</span><span class="o">-</span><span class="n">pheno</span>  <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">Rosmap</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">gene_exp</span><span class="o">/</span><span class="n">DLPFC</span><span class="o">/</span><span class="n">geneTpmResidualsAgeGenderAdj_rename</span><span class="o">.</span><span class="n">txt</span>  \
+  <span class="o">--</span><span class="n">wd</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span> \
+  <span class="o">--</span><span class="n">genotype_list</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">Rosmap</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Rosmap_wgs_genotype_list</span><span class="o">.</span><span class="n">txt</span> \
+  <span class="o">--</span><span class="n">region_list</span> <span class="o">~/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="mi">30</span><span class="o">-</span><span class="mi">200</span><span class="o">/</span><span class="n">test_region_list</span><span class="o">.</span><span class="n">txt</span> \
+  <span class="o">--</span><span class="n">region_name</span> <span class="mi">1</span> \
+  <span class="o">--</span><span class="n">data_start</span> <span class="mi">2</span> \
+  <span class="o">--</span><span class="n">output_path</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span> \
+  <span class="o">--</span><span class="n">window</span> <span class="mi">500000</span> \
+  <span class="o">--</span><span class="n">container</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">system_file</span><span class="o">/</span><span class="n">twas_latest</span><span class="o">.</span><span class="n">sif</span> \
+  <span class="o">--</span><span class="n">job_size</span> <span class="mi">1</span>\
+  <span class="o">-</span><span class="n">J</span> <span class="mi">6</span> <span class="o">-</span><span class="n">q</span> <span class="n">csg</span> <span class="o">-</span><span class="n">c</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">template</span><span class="o">/</span><span class="n">csg</span><span class="o">.</span><span class="n">yml</span> <span class="o">&amp;</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Keyboard Interrupt
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="BSLMM-model-issues-test-run">BSLMM model issues test run<a class="anchor-link" href="#BSLMM-model-issues-test-run">&#182;</a></h1><p>To investigate this issue, the following command were ran to see if the bslmm is working:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">nohup</span> <span class="n">sos</span> <span class="n">run</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">Workflow</span><span class="o">/</span><span class="n">twas_fusion</span><span class="o">.</span><span class="n">ipynb</span> <span class="n">compute_wgt_3</span>  \
+  <span class="o">--</span><span class="n">gwas_sumstat</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">sum_stat</span><span class="o">.</span><span class="n">sumstats</span> \
+  <span class="o">--</span><span class="n">molecular</span><span class="o">-</span><span class="n">pheno</span>  <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">Rosmap</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">gene_exp</span><span class="o">/</span><span class="n">DLPFC</span><span class="o">/</span><span class="n">geneTpmResidualsAgeGenderAdj_rename</span><span class="o">.</span><span class="n">txt</span>  \
+  <span class="o">--</span><span class="n">wd</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span> \
+  <span class="o">--</span><span class="n">genotype_list</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">Rosmap</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Rosmap_wgs_genotype_list</span><span class="o">.</span><span class="n">txt</span> \
+  <span class="o">--</span><span class="n">region_list</span> <span class="o">~/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="mi">30</span><span class="o">-</span><span class="mi">200</span><span class="o">/</span><span class="n">test_region_list</span><span class="o">.</span><span class="n">txt</span> \
+  <span class="o">--</span><span class="n">region_name</span> <span class="mi">1</span> \
+  <span class="o">--</span><span class="n">data_start</span> <span class="mi">2</span> \
+  <span class="o">--</span><span class="n">output_path</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span> \
+  <span class="o">--</span><span class="n">window</span> <span class="mi">500000</span> \
+  <span class="o">--</span><span class="n">model</span> <span class="n">blsmm</span> <span class="n">blup</span> <span class="n">lasso</span> <span class="n">top1</span> <span class="n">enet</span> \
+  <span class="o">--</span><span class="n">container</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">system_file</span><span class="o">/</span><span class="n">twas_latest</span><span class="o">.</span><span class="n">sif</span> \
+  <span class="o">--</span><span class="n">job_size</span> <span class="mi">1</span>\
+  <span class="o">-</span><span class="n">J</span> <span class="mi">6</span> <span class="o">-</span><span class="n">q</span> <span class="n">csg</span> <span class="o">-</span><span class="n">c</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">template</span><span class="o">/</span><span class="n">csg</span><span class="o">.</span><span class="n">yml</span> <span class="o">&amp;</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">nohup</span> <span class="n">sos</span> <span class="n">run</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">Workflow</span><span class="o">/</span><span class="n">twas_fusion</span><span class="o">.</span><span class="n">ipynb</span> <span class="n">association_test</span>  \
+  <span class="o">--</span><span class="n">gwas_sumstat</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">sum_stat</span><span class="o">.</span><span class="n">sumstats</span> \
+  <span class="o">--</span><span class="n">molecular</span><span class="o">-</span><span class="n">pheno</span>  <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">Rosmap</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">gene_exp</span><span class="o">/</span><span class="n">DLPFC</span><span class="o">/</span><span class="n">geneTpmResidualsAgeGenderAdj_rename</span><span class="o">.</span><span class="n">txt</span>  \
+  <span class="o">--</span><span class="n">wd</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span> \
+  <span class="o">--</span><span class="n">genotype_list</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">Rosmap</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Rosmap_wgs_genotype_list</span><span class="o">.</span><span class="n">txt</span> \
+  <span class="o">--</span><span class="n">region_list</span> <span class="o">~/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="mi">30</span><span class="o">-</span><span class="mi">200</span><span class="o">/</span><span class="n">test_region_list</span><span class="o">.</span><span class="n">txt</span> \
+  <span class="o">--</span><span class="n">region_name</span> <span class="mi">1</span> \
+  <span class="o">--</span><span class="n">data_start</span> <span class="mi">2</span> \
+  <span class="o">--</span><span class="n">output_path</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">Project</span><span class="o">/</span><span class="n">test</span> \
+  <span class="o">--</span><span class="n">window</span> <span class="mi">500000</span> \
+  <span class="o">--</span><span class="n">model</span> <span class="n">blsmm</span> <span class="n">blup</span> <span class="n">lasso</span> <span class="n">top1</span> <span class="n">enet</span> \
+  <span class="o">--</span><span class="n">container</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">hs3163</span><span class="o">/</span><span class="n">system_file</span><span class="o">/</span><span class="n">twas_latest</span><span class="o">.</span><span class="n">sif</span> \
+  <span class="o">--</span><span class="n">job_size</span> <span class="mi">1</span>\
+  <span class="o">-</span><span class="n">J</span> <span class="mi">6</span> <span class="o">-</span><span class="n">q</span> <span class="n">csg</span> <span class="o">-</span><span class="n">c</span> <span class="o">~/</span><span class="n">GIT</span><span class="o">/</span><span class="n">neuro</span><span class="o">-</span><span class="n">twas</span><span class="o">/</span><span class="n">template</span><span class="o">/</span><span class="n">csg</span><span class="o">.</span><span class="n">yml</span> <span class="o">&amp;</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">paste</span> <span class="s1">&#39;cut *weight* -f 2` `&#39;</span><span class="n">cut</span> <span class="o">*</span><span class="n">weight</span><span class="o">*</span> <span class="o">-</span><span class="n">f</span> <span class="mi">3</span><span class="sb">` &#39;cut *weight* -f 4`</span> <span class="s1">&#39;cut *weight* -f 5` &gt; passed_region.txt</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Extracting-the-genes-that-passed-the-heratibility-check">Extracting the genes that passed the heratibility check<a class="anchor-link" href="#Extracting-the-genes-that-passed-the-heratibility-check">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[39]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Keyboard Interrupt
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="c1">## Potential graphing with the hsq distribution</span>
+<span class="n">pwd</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>/Users/haosun/Documents/WG_Reasearch_Assisstant/GIT/twas-dev/Analysis
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+
+</div>
+</div>
+</div>
+<hr>
+&copy 2020-2021 Hao Sun & Gao Wang, Department of Neurology, Columbia University
+<p><small>Exported from <a href="http://github.com/hsun3163/jnbinder/blob/93314c88684ab4704a5db1f03c434d85b038a8f8/analysis/Pipeline_testing_Rosmap_analysis.ipynb"><code>analysis/Pipeline_testing_Rosmap_analysis.ipynb</code></a> committed by Gao Wang on Thu May 6 00:26:26 2021 <a href="http://github.com/hsun3163/jnbinder/commit/93314c88684ab4704a5db1f03c434d85b038a8f8">revision 1, 93314c8</a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+</div>
+</div>
+</body>
+</html>
