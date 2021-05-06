@@ -222,10 +222,6 @@ body {
 </li>
         
 <li>
-  <a href="../writeup.html">Writeup</a>
-</li>
-        
-<li>
   <a href="../analysis.html">Analysis</a>
 </li>
         
@@ -249,7 +245,7 @@ body {
 
 {% block footer %}
 <hr>
-&copy 2020-2021 Hao Sun & Gao Wang, Department of Neurology, Columbia University
+&copy 2020-2021 Hao Sun, Department of Neurology, Columbia University
 </div>
 </div>
 </body>

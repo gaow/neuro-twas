@@ -186,10 +186,6 @@ $(document).ready(function () {
 </li>
         
 <li>
-  <a href="./writeup.html">Writeup</a>
-</li>
-        
-<li>
   <a href="./analysis.html">Analysis</a>
 </li>
         
@@ -212,7 +208,7 @@ $(document).ready(function () {
 {%- endblock header -%}
 {% block footer %}
 <hr>
-&copy 2020-2021 Hao Sun & Gao Wang, Department of Neurology, Columbia University
+&copy 2020-2021 Hao Sun, Department of Neurology, Columbia University
 <!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
 
 </div>
