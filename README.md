@@ -19,6 +19,8 @@ jnbinder
 ## Expression data TWAS
 
 1. RNA Seq Data transformation and QC
-2. Customized weight generation (Fusion-based)
-3. Expression imputation (Fusion-based)
+2. Univariate Customized weight generation (Fusion & SuSiE)
+3. Multivariate weight generation (SuSiE)
+4. Expression imputation (Fusion-based)
+5. Association testing
 
