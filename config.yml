@@ -1,6 +1,6 @@
 name: 'Multi-tissue brain TWAS'
 repo: 'http://github.com/hsun3163/jnbinder'
-footer: "&copy 2020-2021 Hao Sun & Gao Wang, Department of Neurology, Columbia University"
+footer: "&copy 2020-2021 Hao Sun, Department of Neurology, Columbia University"
 include_dir: ["writeup", "analysis", "workflow"]
 # exclude_file: []
 # hide_navbar: []
