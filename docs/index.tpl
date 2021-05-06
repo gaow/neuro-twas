@@ -197,7 +197,7 @@ $(document).ready(function () {
     
 <ul class="nav navbar-nav navbar-right">
 <li>
-   <a href="http://github.com/hsun3163/jnbinder"> <span class="fa fa-github"></span> </a>
+   <a href="http://github.com/hsun3163/neuro-twas"> <span class="fa fa-github"></span> </a>
 </li>
 </ul>
         
