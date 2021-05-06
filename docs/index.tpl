@@ -189,6 +189,10 @@ $(document).ready(function () {
   <a href="./workflow.html">Workflow</a>
 </li>
         
+<li>
+  <a href="./analysis.html">Analysis</a>
+</li>
+        
       </ul>
     
 <ul class="nav navbar-nav navbar-right">
