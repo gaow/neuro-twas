@@ -222,10 +222,6 @@ body {
 </li>
         
 <li>
-  <a href="../analysis.html">Analysis</a>
-</li>
-        
-<li>
   <a href="../workflow.html">Workflow</a>
 </li>
         

@@ -1,7 +1,7 @@
 name: 'Multi-tissue brain TWAS'
 repo: 'http://github.com/hsun3163/neuro-twas'
 footer: "&copy 2020-2021 Hao Sun, Department of Neurology, Columbia University"
-include_dir: ["analysis", "workflow"]
+include_dir: ["workflow","analysis"]
 # exclude_file: []
 # hide_navbar: []
 # homepage: "Overview.ipynb"
