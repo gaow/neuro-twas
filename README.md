@@ -8,8 +8,17 @@ multi-ethnic AD cohorts, to perform association testing for a number of AD relat
 
 We will also explore the possibility to predict one molecular phenotype from others and to complete missing values in these phenotypes.
 
+To build the research website,
+
+```
+source jnbinder_docker.sh
+jnbinder
+```
+
+
 ## Expression data TWAS
 
 1. RNA Seq Data transformation and QC
 2. Customized weight generation (Fusion-based)
 3. Expression imputation (Fusion-based)
+
