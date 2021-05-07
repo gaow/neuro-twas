@@ -1,15 +1,18 @@
 # Molecular phenotype prediction and association mapping for Alzheimer's disease (AD)
 
-This project leverages available molecular phenotype data in brains to perform TWAS for AD, in a variety of AD cohorts.
+This project leverages available molecular phenotype data in brains to perform TWAS for Alzheimer's Disease(AD) in various AD cohorts.
 
-Using multi-omics data from brains for >1000 individuals, we train models for predicting from genotypes molecular phenotypes, ie, gene expression, alternative splicing, APA, methylation, histone acetylation, etc. 
-We will also leverage genomic annotations obtained for different brain tissues and cell types to improve the predictions. Prediction of molecular phenotypes using models trained will be applied to 
-multi-ethnic AD cohorts, to perform association testing for a number of AD related phenotypes including age at onset and cognitive memory functions.
+Currently, the established benchmark of TWAS analysis is the FUSION pipeline, which computes the associations between genotypes and expressions using various models and calculates the TWAS effect size using the results from the best performing one.
 
-We will also explore the possibility to predict one molecular phenotype from others and to complete missing values in these phenotypes.
+I have constructed two workflows. [TWAS-fusion](https://hsun3163.github.io/neuro-twas/workflow/twas_fusion.html) connects the steps for FUSION analysis into a ready-to-use pipeline. On the other hand, our implementation of TWAS analysis, multivariate susie, [mv-susie](https://hsun3163.github.io/neuro-twas/workflow/complete_mv_susie_workflow.html), can train models that predicted various molecular phenotypes, i.e., gene expression, alternative splicing, APA, methylation, histone acetylation, simultaneously.
 
-To build the research website,
+A pilot study with ~1000 samples and three brain regions have demonstrated the performance and feasibility of mv-susie using a set of published risk locus. In two out of the three tissues, multivariate susie workflows outperform FUSION benchmark in terms of imputation accuracy for more than 40% of genes and can identify more higher number of TWAS significant genes.
 
+A whole-genome study aiming to identify further TWAS Significant genes using more brain tissues is ongoing.
+
+This repo containing the workflows I constructed and some analysis on the output of these workflow.
+
+To compile the research website:
 ```
 source jnbinder_docker.sh
 jnbinder
