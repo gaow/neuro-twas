@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ipynb_website:version" content="0.9.7" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" type="text/css" href="../css/jt.css">
+
+<link rel="stylesheet" type="text/css" href="../css/toc2.css">
+
+<link href="../site_libs/jqueryui-1.11.4/jquery-ui.css">
+<link rel="stylesheet" href="../site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="../site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+
+<link rel="stylesheet"
+      href="../site_libs/highlightjs/null.min.css"
+      type="text/css" />
+
+<script src="../site_libs/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+<script src="../js/doc_toc.js"></script>
+<script src="../js/docs.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+        },
+        "HTML-CSS": {
+            preferredFont: "TeX",
+            availableFonts: ["TeX"],
+            styles: {
+                scale: 110,
+                ".MathJax_Display": {
+                    "font-size": "110%",
+                }
+            }
+        }
+    });
+</script>
+<script>
+function filterDataFrame(id) {
+    var input = document.getElementById("search_" + id);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("dataframe_" + id);
+    var tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (var i = 1; i < tr.length; i++) {
+        for (var j = 0; j < tr[i].cells.length; ++j) {
+            var matched = false;
+            if (tr[i].cells[j].innerHTML.toUpperCase().indexOf(filter) != -1) {
+                tr[i].style.display = "";
+                matched = true
+                break;
+            }
+            if (!matched)
+                tr[i].style.display = "none";
+        }
+    }
+}
+function sortDataFrame(id, n, dtype) {
+    var table = document.getElementById("dataframe_" + id);
+    var tb = table.tBodies[0]; // use `<tbody>` to ignore `<thead>` and `<tfoot>` rows
+    var tr = Array.prototype.slice.call(tb.rows, 0); // put rows into array
+    if (dtype === 'numeric') {
+        var fn = function(a, b) { 
+            return parseFloat(a.cells[n].textContent) <= parseFloat(b.cells[n].textContent) ? -1 : 1;
+        }
+    } else {
+        var fn = function(a, b) {
+            var c = a.cells[n].textContent.trim().localeCompare(b.cells[n].textContent.trim()); 
+            return c > 0 ? 1 : (c < 0 ? -1 : 0) }
+    }
+    var isSorted = function(array, fn) {
+        if (array.length < 2)
+            return 1;
+        var direction = fn(array[0], array[1]); 
+        for (var i = 1; i < array.length - 1; ++i) {
+            var d = fn(array[i], array[i+1]);
+            if (d == 0)
+                continue;
+            else if (direction == 0)
+                direction = d;
+            else if (direction != d)
+                return 0;
+            }
+        return direction;
+    }
+    var sorted = isSorted(tr, fn);
+    if (sorted == 1 || sorted == -1) {
+        // if sorted already, reverse it
+        for(var i = tr.length - 1; i >= 0; --i)
+            tb.appendChild(tr[i]); // append each row in order
+    } else {
+        tr = tr.sort(fn);
+        for(var i = 0; i < tr.length; ++i)
+            tb.appendChild(tr[i]); // append each row in order
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function(){
+            var cfg={'threshold':3,     // depth of toc (number of levels)
+             'number_sections': false,
+             'toc_cell': false,          // useless here
+             'toc_window_display': true, // display the toc window
+             "toc_section_display": "block", // display toc contents in the window
+             'sideBar':true,       // sidebar or floating window
+             'navigate_menu':false       // navigation menu (only in liveNotebook -- do not change)
+            }
+            var st={};                  // some variables used in the script
+            st.rendering_toc_cell = false;
+            st.config_loaded = false;
+            st.extension_initialized=false;
+            st.nbcontainer_marginleft = $('#notebook-container').css('margin-left')
+            st.nbcontainer_marginright = $('#notebook-container').css('margin-right')
+            st.nbcontainer_width = $('#notebook-container').css('width')
+            st.oldTocHeight = undefined
+            st.cell_toc = undefined;
+            st.toc_index=0;
+            // fire the main function with these parameters
+            table_of_contents(cfg, st);
+            var file=analysisDict[$("h1:first").attr("id")];
+            $("#toc-level0 a").css("color","#126dce");
+            $('a[href="#'+$("h1:first").attr("id")+'"]').hide()
+            var docs=analysisArray;
+            var docs_map=analysisArrayMap;
+            var pos=analysisArray.indexOf(file);
+            for (var a=pos;a>=0;a--){
+                  $('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>').insertBefore("#toc-level0 li:eq(0)");
+            }
+            $('a[href="'+file+'.html'+'"]').css("color","#126dce");
+            for (var a=pos+1;a<docs.length;a++){
+                  $(".toc #toc-level0").append('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>');
+            }
+            // $("#toc-header").hide(); // comment out because it prevents search bar from displaying
+    });
+</script>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+  // mark it active
+  menuAnchor.parent().addClass('active');
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+<div class="container-fluid main-container">
+<!-- tabsets -->
+<script src="../site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+
+
+<title>Multi-tissue brain TWAS</title>
+
+<style type = "text/css">
+body {
+  font-family: "Droid Sans";
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<!-- code folding -->
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">Multi-tissue brain TWAS</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+<li>
+  <a href="../index.html">Overview</a>
+</li>
+        
+<li>
+  <a href="../workflow.html">Workflow</a>
+</li>
+        
+<li>
+  <a href="../analysis.html">Analysis</a>
+</li>
+        
+      </ul>
+        
+<ul class="nav navbar-nav navbar-right">
+<li>
+   <a href="http://github.com/hsun3163/neuro-twas"> <span class="fa fa-github"></span> </a>
+</li>
+</ul>
+        
+      </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Pilot-Study:-Performance-comparison-between-MV-SuSiE-and-FUSION">Pilot Study: Performance comparison between MV SuSiE and FUSION<a class="anchor-link" href="#Pilot-Study:-Performance-comparison-between-MV-SuSiE-and-FUSION">&#182;</a></h1><p>Comparison on the crossvalidation p-value accuracy of gene expression imputed by MV SuSiE and FUSION.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">tibble</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">readr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">purrr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">tidyr</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>
+Attaching package: ‘dplyr’
+
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+Registered S3 methods overwritten by &#39;ggplot2&#39;:
+  method         from 
+  [.quosures     rlang
+  c.quosures     rlang
+  print.quosures rlang
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Data-Processing">Data Processing<a class="anchor-link" href="#Data-Processing">&#182;</a></h2><h3 id="TWAS-FUSION-Data">TWAS-FUSION Data<a class="anchor-link" href="#TWAS-FUSION-Data">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">dir</span> <span class="o">=</span> <span class="s">&quot;~/Project/Alz/&quot;</span>
+<span class="n">Proj</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="s">&quot;Alz_AC_SNP&quot;</span><span class="p">,</span><span class="s">&quot;Alz_DLPFC_SNP&quot;</span><span class="p">,</span><span class="s">&quot;Alz_PCC_SNP&quot;</span><span class="p">)</span>
+<span class="n">tmp</span> <span class="o">=</span> <span class="nf">tibble</span><span class="p">(</span>
+  <span class="n">Proj_Name</span> <span class="o">=</span> <span class="n">Proj</span>
+<span class="p">)</span>
+<span class="n">fusion_data</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+  <span class="n">result_data</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">Proj_Name</span><span class="p">,</span><span class="o">~</span><span class="nf">read_delim</span><span class="p">(</span><span class="nf">paste</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">.x</span><span class="p">,</span><span class="s">&quot;/result/all_result.txt&quot;</span><span class="p">,</span><span class="n">sep</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">),</span><span class="n">delim</span> <span class="o">=</span> <span class="s">&quot;\t&quot;</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">(</span><span class="n">FILE</span><span class="o">!=</span><span class="s">&quot;FILE&quot;</span><span class="p">)),</span>
+  <span class="n">result_data_TWAS</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">result_data</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BEST.GWAS.ID</span><span class="p">))</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="o">-</span><span class="n">FILE</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+      <span class="n">MODELCV.R2</span> <span class="o">=</span> <span class="nf">as.numeric</span><span class="p">(</span><span class="n">MODELCV.R2</span><span class="p">),</span>
+      <span class="n">MODELCV.PV</span> <span class="o">=</span> <span class="nf">p.adjust</span><span class="p">(</span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">MODELCV.PV</span><span class="p">),</span> <span class="n">method</span> <span class="o">=</span> <span class="s">&quot;fdr&quot;</span><span class="p">)</span> <span class="p">,</span><span class="n">TWAS.P.Adj</span> <span class="o">=</span> <span class="nf">p.adjust</span><span class="p">(</span><span class="n">TWAS.P</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s">&quot;fdr&quot;</span><span class="p">))</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">()</span>
+                        <span class="p">),</span>
+        <span class="n">twas_gene</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">result_data_TWAS</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">ID</span><span class="p">),</span>
+        <span class="n">psed_gene</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">result_data_TWAS</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">(</span><span class="n">TWAS.P.Adj</span><span class="o">&lt;</span><span class="m">0.05</span><span class="p">)),</span>
+        <span class="n">r2</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">result_data_TWAS</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">MODELCV.R2</span><span class="p">)</span><span class="o">%&gt;%</span><span class="n">as.numeric</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">mean</span><span class="p">()),</span>
+        <span class="n">pval</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">result_data_TWAS</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">MODELCV.PV</span><span class="p">)</span><span class="o">%&gt;%</span><span class="n">as.numeric</span><span class="o">%&gt;%</span><span class="nf">na.omit</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">mean</span><span class="p">())</span>
+<span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Parsed with column specification:
+cols(
+  .default = col_character()
+)
+
+See spec(...) for full column specifications.
+
+Parsed with column specification:
+cols(
+  .default = col_character()
+)
+
+See spec(...) for full column specifications.
+
+Parsed with column specification:
+cols(
+  .default = col_character()
+)
+
+See spec(...) for full column specifications.
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Weight-estimation-for-mv-susie">Weight estimation for mv susie<a class="anchor-link" href="#Weight-estimation-for-mv-susie">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[40]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">total</span> <span class="o">=</span> <span class="nf">attach</span><span class="p">(</span><span class="s">&quot;~/Project/Alz/multi_susie_pilot/mv_cv.RData&quot;</span><span class="p">)</span><span class="o">$</span><span class="n">output</span> 
+<span class="n">susie_data</span> <span class="o">=</span> <span class="n">total</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="o">-</span><span class="n">path</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span> 
+  <span class="n">n_of_cs</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">sets</span><span class="o">$</span><span class="n">cs_index</span><span class="o">%&gt;%</span><span class="nf">length</span><span class="p">()),</span>
+  <span class="n">rmse_ac</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">rmse[1]</span><span class="p">),</span>
+  <span class="n">rmse_PCC</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">rmse[2]</span><span class="p">),</span>
+  <span class="n">rmse_DLPFC</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">rmse[3]</span><span class="p">),</span>
+  <span class="n">r2_ac</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">r2[1]</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">3</span><span class="p">)),</span>
+  <span class="n">r2_PCC</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">r2[2]</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">3</span><span class="p">)),</span>
+  <span class="n">r2_DLPFC</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">r2[3]</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">3</span><span class="p">)),</span>
+ <span class="n">pval_ac</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">pval[1]</span><span class="p">),</span>
+ <span class="n">pval_PCC</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">pval[2]</span><span class="p">),</span>
+ <span class="n">pval_DLPFC</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">$</span><span class="n">pval[3]</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>The following object is masked from file:~/Project/Alz/multi_susie_pilot/mv_cv.RData (pos = 3):
+
+    output
+
+
+The following object is masked from file:~/Project/Alz/multi_susie_pilot/mv_cv.RData (pos = 4):
+
+    output
+
+
+The following object is masked from file:~/Project/Alz/multi_susie_pilot/mv_cv.RData (pos = 5):
+
+    output
+
+
+The following object is masked from file:~/Project/Alz/multi_susie_pilot/mv_cv.RData (pos = 6):
+
+    output
+
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Merging-of-data">Merging of data<a class="anchor-link" href="#Merging-of-data">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[54]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">merged_data</span> <span class="o">=</span> <span class="n">fusion_data</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="n">Proj_Name</span><span class="p">,</span><span class="n">twas_gene</span><span class="p">,</span><span class="n">result_data_TWAS</span><span class="p">,</span><span class="n">r2</span><span class="p">,</span><span class="n">pval</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">3</span><span class="p">,</span><span class="m">2</span><span class="p">),</span>
+    <span class="n">susie_r2</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">twas_gene</span><span class="p">,</span><span class="n">idx</span><span class="p">,</span> <span class="o">~</span> <span class="p">((</span><span class="n">susie_data</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">(</span><span class="n">ID</span> <span class="o">%in%</span> <span class="n">.x</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span><span class="n">n_of_cs</span><span class="p">,</span><span class="n">pval_ac</span><span class="p">,</span><span class="n">pval_PCC</span><span class="p">,</span><span class="n">pval_DLPFC</span><span class="p">,</span><span class="n">r2_ac</span><span class="p">,</span><span class="n">r2_PCC</span><span class="p">,</span><span class="n">r2_DLPFC</span><span class="p">))</span><span class="n">[</span><span class="p">,</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">2+3+.</span><span class="n">y</span><span class="p">)</span><span class="n">]</span><span class="p">)),</span>
+    <span class="n">susie_pval</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">twas_gene</span><span class="p">,</span><span class="n">idx</span><span class="p">,</span> <span class="o">~</span> <span class="p">((</span><span class="n">susie_data</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">(</span><span class="n">ID</span> <span class="o">%in%</span> <span class="n">.x</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span><span class="n">n_of_cs</span><span class="p">,</span><span class="n">pval_ac</span><span class="p">,</span><span class="n">pval_PCC</span><span class="p">,</span><span class="n">pval_DLPFC</span><span class="p">,</span><span class="n">r2_ac</span><span class="p">,</span><span class="n">r2_PCC</span><span class="p">,</span><span class="n">r2_DLPFC</span><span class="p">))</span><span class="n">[</span><span class="p">,</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">2+.</span><span class="n">y</span><span class="p">)</span><span class="n">]</span><span class="p">)),</span>
+    <span class="n">sum_data</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">result_data_TWAS</span><span class="p">,</span><span class="n">susie_r2</span><span class="p">,</span> <span class="o">~</span> <span class="nf">inner_join</span><span class="p">(</span><span class="n">.x</span><span class="p">,</span><span class="n">.y</span> <span class="p">)</span><span class="o">%&gt;%</span>
+                    <span class="nf">mutate</span><span class="p">(</span><span class="n">r2_more</span> <span class="o">=</span> <span class="n">.[</span><span class="p">,</span><span class="nf">ncol</span><span class="p">(</span><span class="n">.)]</span> <span class="o">&gt;=</span> <span class="n">MODELCV.R2</span><span class="o">%&gt;%</span><span class="nf">as.numeric</span><span class="p">()</span> <span class="p">)),</span>
+    <span class="n">sum_data</span> <span class="o">=</span> <span class="nf">map2</span><span class="p">(</span><span class="n">sum_data</span><span class="p">,</span><span class="n">susie_pval</span><span class="p">,</span> <span class="o">~</span> <span class="nf">inner_join</span><span class="p">(</span><span class="n">.x</span><span class="p">,</span><span class="n">.y</span> <span class="p">)</span><span class="o">%&gt;%</span>
+                    <span class="nf">mutate</span><span class="p">(</span><span class="n">pv_less</span> <span class="o">=</span> <span class="n">.[</span><span class="p">,</span><span class="nf">ncol</span><span class="p">(</span><span class="n">.)]</span> <span class="o">&lt;=</span> <span class="n">MODELCV.PV</span><span class="o">%&gt;%</span><span class="nf">as.numeric</span><span class="p">()</span> <span class="p">)),</span>
+    <span class="n">sum_data</span> <span class="o">=</span> <span class="nf">map</span><span class="p">(</span><span class="n">sum_data</span><span class="p">,</span><span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span>
+                   <span class="nf">mutate</span><span class="p">(</span><span class="n">both_win</span> <span class="o">=</span> <span class="p">(</span><span class="n">r2_more</span> <span class="o">&amp;</span> <span class="n">pv_less</span><span class="p">)</span> <span class="p">)),</span>
+    <span class="n">pcnt_pv_win</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">sum_data</span><span class="p">,</span> <span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">pv_less</span><span class="p">)</span><span class="o">%&gt;%</span><span class="n">na.omit</span><span class="o">%&gt;%</span><span class="nf">mean</span><span class="p">()</span>  <span class="p">),</span>
+    <span class="n">pcnt_r2_win</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">sum_data</span><span class="p">,</span> <span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">pull</span><span class="p">(</span><span class="n">r2_more</span><span class="p">)</span><span class="o">%&gt;%</span><span class="n">na.omit</span><span class="o">%&gt;%</span><span class="nf">mean</span><span class="p">()</span>  <span class="p">),</span>
+    <span class="n">pcnt_both_win</span> <span class="o">=</span> <span class="nf">map_dbl</span><span class="p">(</span><span class="n">sum_data</span><span class="p">,</span> <span class="o">~</span><span class="n">.x</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">(</span><span class="n">both_win</span> <span class="p">)</span><span class="o">%&gt;%</span><span class="nf">nrow</span><span class="p">()</span><span class="o">/</span><span class="nf">nrow</span><span class="p">(</span><span class="n">.x</span><span class="p">)</span> <span class="p">)</span>
+    <span class="p">)</span><span class="o">%&gt;%</span><span class="nf">select</span><span class="p">(</span><span class="o">-</span><span class="n">twas_gene</span><span class="p">,</span><span class="o">-</span><span class="n">idx</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Joining, by = &#34;ID&#34;
+
+Joining, by = &#34;ID&#34;
+
+Joining, by = &#34;ID&#34;
+
+Joining, by = &#34;ID&#34;
+
+Joining, by = &#34;ID&#34;
+
+Joining, by = &#34;ID&#34;
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Data-Visualization">Data Visualization<a class="anchor-link" href="#Data-Visualization">&#182;</a></h2><h3 id="Distribution-of-MvSuSIE-CV-P-value">Distribution of MvSuSIE CV P value<a class="anchor-link" href="#Distribution-of-MvSuSIE-CV-P-value">&#182;</a></h3><h4 id="PCC">PCC<a class="anchor-link" href="#PCC">&#182;</a></h4>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">merged_data</span><span class="o">$</span><span class="n">sum_data[[3]]</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">ggplot</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">pval_PCC</span><span class="p">,</span><span class="n">fill</span> <span class="o">=</span> <span class="n">pv_less</span> <span class="p">))</span><span class="o">+</span><span class="nf">geom_histogram</span><span class="p">()</span><span class="o">+</span>
+<span class="nf">ggtitle</span><span class="p">(</span><span class="s">&quot;Distribution of MvSuSiE CV P value for PCC&quot;</span><span class="p">)</span><span class="o">+</span><span class="nf">xlab</span><span class="p">(</span><span class="s">&quot;CV P value for Gene expression&quot;</span><span class="p">)</span><span class="o">+</span><span class="nf">labs</span><span class="p">(</span><span class="n">fill</span> <span class="o">=</span> <span class="s">&quot;MvSuSiE with lower P value&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAAA0lBMVEUAAAAAv8QzMzM1NTVB
+QUFCQkJERERNTU1PT09RUVFcXFxeXl5paWlra2t1dXV3d3d4eHh5eXl7e3uBgYGFhYWGhoaL
+i4uOjo6Pj4+SkpKUlJSbm5ucnJyenp6goKClpaWoqKiurq6wsLC5ubm7u7vBwcHJycnNzc3T
+09PZ2dnb29vc3Nzk5OTl5eXm5ubo6Ojr6+vs7Ozt7e3u7u7v7+/w8PDx8fHy8vLz8/P09PT1
+9fX29vb39/f4dm34+Pj5+fn6+vr7+/v8/Pz9/f3+/v7////ubPuOAAAACXBIWXMAABJ0AAAS
+dAHeZh94AAAgAElEQVR4nO3dCXvj1mGFYVZNrC5u0jrpki7plqRbmiaxZ0ZbJFEa/P+/VEuH
+JIBzAZAHgESC871PoqFIXlyQvN8ApGV5VQGYbHXsHQDOASEBMyAkYAaEBMyAkIAZEBIwA0IC
+ZkBIwAxGhLTa2nzXe7eBGwdv6piwHFOM3+1R39Wvf67ae1/fZ9XeaPNScf/OaQ57CN072Nx+
+e7IDpsYpmBKSrT37rj+kzYpO5iu27uN7lnuxpx0hNa4ZCmlfKYc9hO7bmn8v9X+HEzYqpO2f
+5eBieQ9tIJyvNePKA1517VJ5dTl3Y9E2H5tPv2c1j7+1tf3VwHc4ZRNC6loexwtpcP7hkBoX
++kOakMpBIdlxuuM7nLIpITWW3vbM6PXP3f/0R/MUcHPF5ub2u5P2Kcz2luapjV+qt2xD+6/u
+OvnreGxDIRUniv5UtHe1ca/2o+3Yvu8M/SzGPCHt4ihCaiyizYhmSKv2GisW36q5VodCqpqD
+h67uCKnj2zLLqmvzq90XD2nVnrj5UFbbp6Fj+92HWSzALCHVS3S7iqrGSmuu4OKe5ZjGJL6q
+Gwey4hDQaGbo6m2w7Yn8wRWHxnJEUU7PDb7VxqMtt09IizVfSPVtvqC6Ft3AzY0LZV2tkGzy
+7fosl7EfKsaE1L6Pb/2AkIpHW26fkBZrppBW7cXavLEq1taUkMqjoC3KqthWx4Gx89G05+i9
+Q3t/m8eS5uPuqLU3pL65CGlBZgmpPoE6ckg+f3l1R0jlIenQkFZdD6fYgE09HFJ7ZkpajCkh
+tVfmO4X0sseNSTaPYHuf7vmHQvI5DwjJZp0xpMHnFqdsQkh2TtMdkt/Scc/Oo8jQla3bdn9W
+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
+JCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQh
+pAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQM
+IRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZ
+QhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUIS
+QsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLK
+EJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCS
+ISQhpAwhmTyk2x4eUt/9hqwfxozaqJ4nDD7ezE/348feVU9Hmvm+Wu/2AdWYkD718JD67jfk
+4W7MqI3qacLgh9vxY6+q9YSZH2/Gj72eNPP6esrMj5tLN2+wKheIUzvh1C7DqZ0hJCGkDCEZ
+QhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUIS
+QsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLK
+EJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCS
+ISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEk
+IaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGk
+DCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwh
+GUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlC
+EkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJC
+yhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQ
+kiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsocGNJq1X15c8WquK519csf
+q60927c79Nx/cFcH5tm/VUISQspMD6mnkObVB4ZUf+md7ADDE+3dKiEJIWUODmnVcbH57b6r
+DyhirpC69qfzPp03pfMRUoGQBlZef0idi7O4+r1DGhw5MaTL79Xf9T21hDTOuYe0al7Sd5tT
+Nl+gnVeXp37NL9//f3M+ZoO3W1zVm24G17jeA7KUN4Oa55pVsZnqoJAud19e9T21hDTOFxpS
+66OGgauDkIottt9ttb7U11tAXTul7a+KkJrvqQ4Nqdb31BLSOGceUr3w/K9z+3iu52r/CKAI
+qV7U9SY6yilGlcewrpnas/jg5l4PNvSKkPYgpF4ekh9kmgeMqr2o66Xe/iyttaDLUza7V9WV
+gbewm7P9oV3rDh1HpDyk7Xukf//Zz372D7c9PKS++w15fBgzaqN6njB4fX+smZ8mzHxXPR1p
+5vtqvduHAc3V1xVSY4G2r7d127PJ0SFtm7FAu2eqz+GKw1nj6Dn0NMhrRa8lfXNxcfFV3908
+pPR2LNN66Mb9IZV/t5cjfZMvV+ch2aiqdf/BkFbFw+j4C2HoaZD6w4b/+dWvfvUfH3p4KOnt
+L+5v+7Z+gOppwuCHm/FjP1brCTM/Xo8f+6l6nDDz+mr82KvqYXPpemjtaB1qmW1W4GbNdSx5
+O5XqCanaJlFv/4CQylFV+1LHRO19nTOkV31nzfveIx3yHor3SJklvEeq/I3Q7s9q92fz7327
+uutAUd9vMKTW4ac9quPg2BWSz9K1r8Gp3e7Lq76nlpDGOf+Q2ot8u2Cbn5LtPsH2q9vfNzba
+Pm0rzw6b2ypG1TcMh9SMsFG276vuM/Q0CCHtQUi9BkKq2qu80ULnx98DIVV9IVXNgXbiaPcf
+DKnaplN2W29x6GnYmOcnGwip21mH9OU4JKS2vqeWkMYhpLNASEJIGUIy7ZC6zhNd31NLSOMQ
+0lnoDmkoqL6nlpDGIaSz0PowpKF/RN9TS0jjENJZ6AlpYETfU0tI4xDSWeA9khBShpAMIQkh
+ZQjJ8PG3EFKGkIyFxIcNIxASilM7QsoREniPtEFImcNC+vyHftPW7ckhJCGkDCEZf4+0f0Tf
+U0tI4xDSWfBy9pfU99QS0jiEdBb4sEEIKUNIhpCEkDKEZPgHskJIGUIyhCSElCEkw6mdEFJm
+1pAaa277L8Q1brJ7nChCEkLKzBtScwE2r6l/KVe2qo+gcw8Hd7vvqSWkcQipGVLVDmn7daEh
+De5331NLSOMQ0r6Q9izI09ATEqd2AULqk4a02n7T/j2PhJTc/oKQMucS0vZteRFSx69fPVF8
+2CCElHmTI1J9Wtdcf0v8sIFffjIGIfVJQ2odmpo3Ly2kQ/Q9tYQ0DiH1H5EW/6ndkL6nlpDG
+IST/jK4OZ8n/HGnvm7q+p5aQxiGkrpB253jL/MmGivdIIxBSny/5Z+0af3Tre2oJaRxCOgv8
+En0hpAwhGUISQsoQkiEkIaQMIRneIwkhZQjJ8KmdEFKGkAz/HEkIKUNIhp9sEELK8Lu/DSEJ
+IWUODOmp3+gle5qK90j11x59Ty0hjXPOIX32F71h+to9KXxqJ4SUISTDP0cSQsoQkiEkIaQM
+IRlCEkLKEJLhPZIQUoaQDD/ZIISUISTDTzYIIWUIyfAPZIWQMnOGVP/uquLXCO3+rfNT/rfM
+XxGSEFJm7iNS8zcVN37bySJ+78krQhJCyrxlSBUhEVKOkOp1SEi/JaSxCKleh12/IZKQwttf
+EFLm7ELq+C/3LeOzBkLaIKQMRyRDSEJIGd4jGUISQsoQkiEkIaTMW4dU//fGCCm8/QUhZc44
+pN3PqvGTDeHtLwgpcz4hLR4hCSFlCMkQkhBShpAMIQkhZQjJEJIQUoaQDCEJIWUIyRCSEFKG
+kAwhCSFlDvyVxYTUr++pJaRxzjqkLwchCSFlCMkQkhBShpAMIQkhZQjJEJIQUoaQDCEJIWUI
+yRCSEFKGkAwhCSFlCMkQkhBShpAMIQkhZQjJEJIQUoaQDCEJIWUIyRCSEFKGkAwhCSFlCMkQ
+khBShpAMIQkhZQjJEJIQUoaQDCEJIWUIyRCSEFKGkEwe0l0PDyW9/cX6sW/rB6ieJwx+Ot7M
+D+PH3ldPE2Z+vh8/9qGe+Q1W5QLlIX3o4aGkt7+4v+3b+gGqpwmDH27Gj/1YrSfM/Hg9fuyn
+6nHCzOur8WOvqofNpes3WJULxKmdcGqX4dTOEJIQUoaQDCEJIWUIyRCSEFKGkAwhCSFlCMkQ
+khBShpAMIQkhZQjJEJIQUoaQDCEJIWUIyRCSEFKGkAwhCSFlCMkQkhBShpAMIQkhZQjJEJIQ
+UoaQDCEJIWUIyRCSEFKGkAwhCSFlCMkQkhBShpAMIQkhZQjJEJIQUoaQDCEJIWUIyRCSEFKG
+kAwhCSFlCMkQkhBShpAMIQkhZQjJEJIQUoaQDCEJIWUIyRCSEFKGkAwhCSFlCMkQkhBShpDM
+24W0T9c2CClDSCeDkISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQ
+MoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKE
+ZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQI
+SQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkI
+KUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClD
+SIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iG
+kISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkDgnp8nv1d31P
+LSGNQ0hn4YCQLndfXvU9tYQ0DiGdBUISQsoQkjn0PRIh9SMkZCH9209/+tO/u+uRhtS1jfVj
+39YPUD1PGPz0sMSZ76unCTM/T5j5oZ75DVfnghwU0vbDhm8uLi6+6rtTGlK6p38w6Xi8jfWx
+d+A0REek3//617/+zbc90pC6tnF707f1b7/1kIo7VOv+wXvdX40f+131OGHmh0/jx36oHibM
+/Phx/NiP1f3m0tUbrs4FWc57JA+puAPvkUK8R5rRcj61I6QSIZ0MQhJCyhCSWc5PNhBSiZBO
+xnJ+1o6QSoR0MghJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClD
+SIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iG
+kISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCE
+kDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAy
+hGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRk
+CEkIKUNIhpCEkDKEZAhJCClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJ
+CClDSIaQhJAyhGQISQgpQ0iGkISQMoRkCEkIKUNIhpCEkDKEZAhJCClDSOZ4IXWF1QzJw5ka
+0vB4QsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlC
+EkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJC
+yhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQ
+kiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhmTykxx5TQ3rZxvNTvb19IRU7UH3u
+27XO7bVvbc4c2zPzsOf1+LHr6nnCzJ9nmfn+DVblAuUhfddjakgv27i7qbe3L6RiB6qnvl3r
+3F771vvrwcGDPlTr8YO/e7gaP/Zj9Thh5sdP48d+qu43l67fYFUuEKd2wqldhlM7Q0hCSBlC
+MoQkhJQhJENIQkgZQjKEJISUISRDSEJIGUIyhCSElCEkQ0hCSBlCMoQkhJQhJENIQkgZQjKE
+JISUISRDSEJIGUIyhCSElCEkQ0hCSBlCMoQkhJQhJENIQkgZQjKEJISUISRDSEJIGUIyhCSE
+lCEkQ0hCSBlCMoQkhJQhJENIQkgZQjKEJISUISRDSEJIGUIyhCSElCEkQ0hCSBlCMoQkhJQh
+JENIQkgZQjKEJISUISRDSEJIGUIypxvS1O0dMl9tf0j9IR4Wks/v29t3e9c23zSkwR0gJENI
+QkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFIQkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFI
+QkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFIQkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFI
+QkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFIQkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFI
+QkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFIQkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFI
+QkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFIQkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFI
+QkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFIQkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFI
+QkgFQkoQkhBSgZAShCSEVCCkBCEJIRUIKUFIQkgFQkoQkhBSgZAShCSEVCCkxCEhXX6v/q7v
+eZ9jYRNS/+1d2ySkk3FASJe7L6/6nvc5FjYh9d/etU1COhmEJIRUIKQEIQkhFQgpEYX0T19/
+/fWPHntMXdgv23h6mm97h8xXe173Pa4tX1eNm6rP+wZ3PJ40pK5trqvnA2bus+cxD+5APfP9
+2y7QpYhC+ubi4uKrt90fLM362DtwGqKQbj9+/Pjpd8M+P+25w5Db6wmDq/WEwff7HteA31eP
+U2b+OH7st9XDhJkfPowf+6G621y6etsFuhTzvUfa+Pw0/qS99R4pVq0nDN7/HqnfYe+R+tx/
+GD/2Td8jDeI9kiEkIaQMIRlCEkLKEJKZ7ycbNggpREhnYb6ftdsgpBAhnQVCEkLKEJIhJCGk
+DCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwh
+GUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlC
+EkLKEJIhJCGkDCEZQhJCyhCSISQhpAwhGUISQsoQkiEkIaQMIRlCEkLKEJIhJCGkDCEZQhJC
+yhCSyUPa40/+bO4tHuqHXx9p4psf/OhIM//fD35ypJn/+wd/e6SZT9TsIf3wT+fe4qH++M+P
+NPH1xV8caebfXPzVkWb+r4u/PtLMJ4qQpiMkENIMCAnzh/STv5l7i4f6y78/0sT3P/7HI838
+7Y//+Ugz/++P//VIM5+o2UMCvkSEBMyAkIAZzBdS4z/Z3P6vN7+51nTvOfFpPOZjPtvv/Hyf
+sNlCutx9aV58D83p3nlN1TMf7zEf8dl+uURIcmYhve/fkCfxmI/8bBOSENJsMx/xuHCsmS85
+tdsipNlmfs+pTyOky3ed+bQR0vJnftc3hsd7nU8bIc018/t+XGgzfgnvzk4bIc008/suqNMI
+Sd5t6pNGSPPM/M7L6VSebY5IW7OHdHm0l/b9V7Q/5uPNfKxnm5C2Zv/Jhsv64ntpzPzeb1V2
+M7/3Wc6JPNuEtMXP2gEzICRgBoQEzICQgBkQEjADQgJmQEjADAgJmAEhATMgJGAGCw5p9WJz
+qb6ueeNqNfjwhm+thkfv3fqs3nEqjLLYF2jVSGUgpOEW9k1w0OzvgZBO3VJfoPpg1CypKGpw
+qY8/Xq0O2Ty+JEtdCI1DTzUQ0p4cDpph7+zAUkOyQ8EBIenCJrv6ONa4unUy1zhtXO3uU2/U
+t1pvpnGwau5i8y67mX3T9ZiVbaaep5gIJ2GhL4YvouYqbd6hXPK6brWNyPtqv8favRmqLCSb
+vHmXVbmxdpf1F9t0PWblm2l8YxPhNCz0tTggJPs0oHUoqC/Y1cUxrT4eFNvq2nLXga7cVryG
+gAgAAAFwSURBVGN7frHcw/aFcgBOwkJfi4NDat+lecA5KKTdga3ncNe3if6Q7CSvuLftZrnz
+XfuKo1voa1GsIVvqHYusuQBXnSF1HMIOC2nVkVTHiWJjY12bbm7HTxAJ6dQt9LUo3h8EIbUi
+6jgMNLfQF1LHkaIa2Fjr2/6QWo+vURchnb6lvhZ+9rM/pJeHWq+/SSF1nnJVAxvzRjp3vG8M
+IS3BUl+L+jxptbui4699G9ITUv1RWmcVld1is3d9xGAbW7U3U0/a3PTKb++60B4QP214K4t9
+Lfxjuf0hVY3V3zhf0rf1Ftv3bn3k3DF7a2CrPdtY/fan/mKb3vMeqdgXQjohC34tWivVl9VA
+SNU2nebRaLvB4t6Ndysds7cHtr8W5bXvslpVvundmOJCo2qfCCeB1+JYyOCs8GoeCyGdFV7N
+YyGks8KreSyEdFZ4NYEZEBIwA0ICZkBIwAwICZgBIQEzICRgBoQEzICQgBkQEjCD/wdJIIc+
+sfDBlAAAAABJRU5ErkJggg=="
+width=420
+height=420
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="DLPFC">DLPFC<a class="anchor-link" href="#DLPFC">&#182;</a></h4>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">merged_data</span><span class="o">$</span><span class="n">sum_data[[2]]</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">ggplot</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">pval_DLPFC</span><span class="p">,</span><span class="n">fill</span> <span class="o">=</span> <span class="n">pv_less</span> <span class="p">))</span><span class="o">+</span><span class="nf">geom_histogram</span><span class="p">()</span><span class="o">+</span>
+<span class="nf">ggtitle</span><span class="p">(</span><span class="s">&quot;Distribution of MvSuSiE CV P value for DLPFC&quot;</span><span class="p">)</span><span class="o">+</span><span class="nf">xlab</span><span class="p">(</span><span class="s">&quot;CV P value for Gene expression&quot;</span><span class="p">)</span><span class="o">+</span><span class="nf">labs</span><span class="p">(</span><span class="n">fill</span> <span class="o">=</span> <span class="s">&quot;MvSuSiE with lower P value&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAAArlBMVEUAAAAAv8QzMzM/Pz9B
+QUFERERMTExNTU1UVFRfX19paWlwcHB1dXV3d3d5eXl7e3t/f3+EhISMjIyNjY2SkpKbm5ue
+np6fn5+rq6utra2xsbGzs7O5ubnHx8fNzc3W1tbZ2dnb29vd3d3l5eXn5+fr6+vs7Ozt7e3v
+7+/w8PDx8fHy8vLz8/P09PT19fX29vb39/f4dm34+Pj5+fn6+vr7+/v8/Pz9/f3+/v7///+P
+0/kDAAAACXBIWXMAABJ0AAASdAHeZh94AAAgAElEQVR4nO3dC3vbRmKFYVZNqtZNml6y6S2t
+t93GcXyToivx//9YnSOJPBhgQBxqZBL09z67upDAAATnM0BakVcdgGdbHXoHgFNASEADhAQ0
+QEhAA4QENEBIQAOEBDRASEADzwhp9eTxu+piE3dO3jWyweE6g/U3e1S7WZ9X/b3fLrPqD+pf
+DZYf3cy8hzC6f+NHs7ijtxsz9ghfRIuQirlXfFcP6XFGJ9sbjF6uX5nugz0dCclumQppVynz
+HsLoXeNHs7ij9g0O6lkhPX0eDjKY3lMDhNvrbXFVBrwauXXk5uG27c98f2zl5ndM273v7R/N
+kT8qxu6YtUv4EhqENDY9DhfS5PanQ7Iv6iHtn8r0vf2jOXbOrd6RHki8gBYh2dR7ujLS583/
+Hj75RcvjDY9391+d9K9Vnu4pXxn4V9uRV8OJNn7z2MXfyGObCmlwoVgeiv6u2lL9R1s/miMb
+7l+KdjgWbUPaxDEIySbR4xoe0qo/xwaTb+VzdSqkzleeunkkpJFvq1dY/UVWmw9lSKv+hv2h
+rJ4OQ/Vojm14pGwcg6YhbZ/qp1nU2UzzGTxYcriObaSc1XYiG5wCrJmpm5+C7W+ofHCDU+Nw
+jUE5lTvKUe3RVo7m6IYHfyThOLQPaXtfOaHGJt3E3fbFsK5eSOXcW/kovbObDbZvSP1lytFn
+hDR4tJWjObphQjpSjUNa9Ser39kN5tZzQurHOzL3usFYvZsHs7C8oRxyZN76/vrs9sc9Umse
+0vheENIxaRrS48zpejPmECGV2x/ePBLS8JQ0N6TV2MMZDFBsukFIlHQ8WoTUn5lfKKQ/9tw2
+8vhInpYZ3/5USOU2Z4RUbLVRSIPdq+5FeZRwQA1CKq5pxkMq7xlZcvQsMnVj777N564cfzV+
+8/DhrMrPq/79I0fA96w8DP3H3Y0sOBbS8PXPREj9PcYBPSuk/ttJT7c83deVd2zmv33Z+Y3d
+WDP9111dVyzk56z+8JWt9ra46k3l3i0zQup8Jq9WTxENt1vueP/Rjh7N0YUG35SPAYfSIqTH
+7zqffGVInS1od439hWw3nGBd/8aJkDqfWatiA8WeDiZhGVbxcMcOgW2odzby7Q6WH/mzYXA0
+54RU7jEOh2cBaICQgAYICWiAkIAGCAlogJCABggJaICQgAYICWiAkIAGCAlogJCABggJaICQ
+gAb2D+m3SZ9uP04vMNt1o3He3142GunyQ6OBblo9to8XjQa6un2XrvKp4WxcsP1D+mXSh+79
+9AKz3b1pM87b7rLNQL9cvms00Pqu0UAfPjUa6Lr7NV3lfcPZuGCElCMkR0hCSDlCcoQkhJQj
+JEdIQkg5QnKEJISUIyRHSEJIOUJyhCSElCMkR0hCSDlCcoQkhJQjJEdIQkg5QnKEJISUIyRH
+SEJIOUJyhCSElCMkR0hCSDlCcoQkhJQjJEdIQkg5QnKEJISUIyRHSEJIOUJyhCSElCMkR0hC
+SDlCcoQkhJQjJEdIQkg5QnKEJISUIyRHSEJIOUJyhCSElCMkR0hCSDlCcoQkhJQjJEdIMiek
+88/884Ppw0tIMxDS6ZgR0vnjh/PNNzJ9eAlpBkI6HYSUIyRHSDL3NRIhbRGSIySZGdJ55yH9
+9OrVq+9uJt11d9MLzLZuNM5td99opPvbRgN1rR7bXbOD3cWrXL3Y3FyUeSGd9z/8cHZ29m1t
+2d/7GuwjjtntoXfgOMwK6Xz7UR8u3r179/5NRRFSbbHZ7n599hDy+dKuzUBvrqqPPbS+azTQ
+x4tGA32+tEtX+fBic3NRZr39bZ92v0YqQnreNfsvvEaag9dIBzf3XbuOkDYIyRGSEFKOkBwh
+yZyQzh9/pGHeTzYQ0myEdDra/6wdIc1GSKeDkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQ
+coTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE
+5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQI
+SQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEkI
+KUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClH
+SI6QhJByhOQISQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iO
+kISQcoTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEkIKUdIjpCE
+kHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJBy
+hOQISQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTk
+CEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEn2D+miogiptths62eP
+8OCqu2000t11o4HWrR7bdbOH1l2mq1w2nI0Ltn9I7yuKkGqLzXb/4dlDyMfups1A728uGg20
+vm800OV1o4Fuu/hof2o4GxeMS7scl3aOSzshpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGk
+HCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwh
+OUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlC
+EkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJC
+yhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoR
+kiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIj
+JCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQh
+pBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQc
+ITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5
+QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QpJ5IZ3rg2xuqx1YQpqN
+kE7HnJAe8znv31o7sIQ0GyGdjuSM1L+tdmAJaTZCOh2ElCMkR0iSvkbSt395/fr1n99WFCHV
+Fpvt/rdnDyHvu+s2A729/thooPVdo4E+XTYa6KaLj/bHl5ucSxKEtP3qh7Ozs29ryxYhPXcH
+ceRuD70Dx2GvkH7+8ccf/3RRUYRUW2y29bNHeHDV3TYa6faq0UDrVo/t+qbRQHfdZbrK5ctM
+zKXZKySpXTPzGmk2XiOdjvTNBkIipD5CEkLKEZIjJEku7Xo/2EBIz0dIp4OftcsRkiMkIaQc
+ITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5
+QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUIS
+QsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLK
+EZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGS
+IyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMk
+IaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGk
+HCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwh
+OUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlC
+EkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJC
+yhGSIyQhpBwhOUISQsoRkiMk2T+ku4oipNpis1U3FLrv1o1GWt83Gqh+EEP3zR5avkc3DWfj
+gnFGynFGcpyRhJByhOQISQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQI
+SQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEkI
+KUdIjpCEkHKE5AhJCClHSI6QhJByhOQISQgpR0iOkISQcoTkCEkIKUdIjpCEkHKE5AhJCClH
+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
+1arW8RrjrrrbRiPdXTcaaN3qsV03e2jdZbrKZcPZuGD7h/ShYkdItdWq7j/Gq4z61N20GejD
+zUWjgdb3jQa6um400G0XH+2LhrNxwbi0y3Fp57i0E0LKEZIjJCGkHCE5QhJCyhGSIyQhpBwh
+OUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlC
+EkLKEZIjJCGkHCE5QhJCyhGSIyRpH1JZDiFVEdLpIKQcITlCEkLKEZIjJCGkHCE5QhJCyhGS
+IyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMk
+IaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGk
+HCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwh
+OUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlC
+EkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJC
+yhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoR
+kiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCkiCkc9l8
+WzuwhDQbIZ2OJKT+t7UDS0izEdLpIKQcITlCEkLKEZIjJElfI+mrv7x+/frPbyt2hFRbrer+
+t3iVUe+76zYDvb3+2Gig9V2jgT5dNhropouP9scXmpkLk75rp5J+ODs7+7a2xI6QnrW3OD63
+h96B47BXSD//+OOPf7qo2BHS74XaMBvrnUvMc9XdNhrp9qrRQOtWj+36ptFAd91lusrlC8zK
+BdorJKldM4ch7bwG5zXSbrxGOrj0zQZCIqQ+QhJCyhGSIyRJLu16P9hASM9HSKfji/+sHSFt
+EdLpIKQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIj
+JCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQh
+pBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQc
+ITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5
+QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUIS
+QsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLK
+EZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGS
+IyQhpBwhOUISQsoRkiMkIaQcITlCki8eUmnnE0VIuxHSwRFSjpAcIQkh5QjJEZIQUo6QHCEJ
+IeUIyRGSEFKOkBwhCSHlCMkRkhBSjpAcIQkh5QjJEZIQUo6QHCEJIeUIyRGSEFKOkBwhCSHl
+CMkRkhBSjpAcIQkh5QjJEZIQUo6QHCEJIeUIyRGS7B/SXUUYUm2YjeqGQvfdutFI6/tGA9UP
+Yui+2UPL9+im4WxcMM5IOc5IjjOSEFKOkBwhCSHlCMkRkhBSjpAcIQkh5QjJEZIQUo6QHCEJ
+IeUIyRGSEFKOkBwhCSHlCMkRkhBSjpAcIQkh5QjJEZIQUo6QHCEJIeUIyRGSEFKOkBwhCSHl
+CMkRkhBSjpAcIcmxhxR3l+3NXpsjJEdIQkj55gjJEZIQUr45QnKEJISUb46QHCEJIeWbIyRH
+SEJI+eYIyRGSEFK+OUJyhCSElG+OkBwhCSHlmyMkR0hCSPnmCMkRkhBSvjlCcoQkhJRvjpAc
+IQkh5ZsjJEdIQkj55gjJEZIQUr45QnKEJISUb46QHCEJIeWbIyRHSEJI+eYIyRGSEFK+OUJy
+hCSElG+OkBwhCSHlmyMkR0hCSPnmCMkRkhBSvjlCcoQkhJRvjpAcIQkh5ZsjJEdIQkj55gjJ
+EZIQUr45QnKEJISUb46QHCEJIeWbIyRHSEJI+eYIyRGSEFK+OUJyhCSElG+OkBwhCSHlmyMk
+R0hCSPnmCMkRkhxdSL/3pTP/9x3rtw1p1uJ1ZUi7dr460HhIe+ydh1TuTWUVQhJCyuceITlC
+EkLK5x4hOUISQsrnHiE5QhJCyuceITlCEkLK5x4hOUISQsrnHiE5QhJCyuceITlCEkLK5x4h
+OUISQsrnHiE5QhJCyuceITlCEkLK5x4hOUISQsrnHiE5QhJCyuceITlCEkLK5x4hOUISQsrn
+HiE5QhJCyuceITlCEkLK5x4hOUISQsrnHiE5QhJCyuceITlCEkLK5x4hOUISQsrnHiE5QhJC
+yuceITlCEkLK5x4hOUISQsrnHiE5QhJCyuceITlCEkLK5x4hOUISQsrnHiE5QhJCyuceITlC
+kiSk88+239Weix1Td9ezS0iEtERBSOebD1J7LnZM3V3PLiER0hIRUj73CMkRkhBSPvcIyRGS
+7BXST69evfrupmLH1C2Vq++YS7u2Foa0a7jRR3h/Gy1e160nH/vOB79xdzd26x57t+7qe1NZ
+5eplJubS7BXSD2dnZ9++zP5gaW4PvQPHYa+QLt69e/f+zaSP3YfpBWa7+7XNOG+7yzYDvbna
+8dhnW981GujjRaOBPl/apat8eJmJuTTtXyM9XrV372dcks9x96bNOJ9DajMQ/xhzD6+RhJBy
+hOQISQgpR0iOkKT9TzY8IKQZCOl0tP9ZuweENAMhnQ5CyhGSIyQhpBwhOUISQsoRkiMkIaQc
+ITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5
+QhJCyhGSIyQhpBwhOUISQsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUIS
+QsoRkiMkIaQcITlCEkLKEZIjJCGkHCE5QhJCyhGSIyQhpBwhOUISQsoRkiMk2T+kaf/xzc8v
+NPK+/vebfz70LpT+5u8OvQelf/jmt0PvwkK9VEj/dvafLzTyvv7n7J8OvQulv/7bQ+9B6e/P
+3h56FxaKkA6IkE4HIR0QIZ2Olwrpv77/7xcaeV//9/2/H3oXSv/4L4feg9K/fv/p0LuwUC8V
+EvBVISSgAUICGmgfkv2Tzf1/vflgertxDDt0hMfoGHdpUZqHdL754F8eku/GcUyR4ztGx7hL
+y/KVhXQM+3OMx+gYd2lZCOkAygNzBPt0hLu0LIR0AMWBOcJdOop9WhRCOoDj26P+Lh3HK8ll
+IaQD6M/aA+7IFmekZyKkA+i9j3jIHdkipGcipAMoj9EROL6nbWFeLKTzo3lGbI+6Y9if4TE6
+Asf3tC3Mi/1kw/n2y0OzPTqSGbLdo/Pz4ztIR7JHy8LP2gENEBLQACEBDRAS0AAhAQ0QEtAA
+IQENEBLQACEBDRAS0MDCQ1r94fGr7W1+52o1+RCn7+2m1945elNfcFOILfrJWVkqEyFNt7Br
+A7O2/iUQ0jFb8pOzPRl5SYOiJqf6/uer1Zzh8bVY8iSwU083EdKOHGZtYefW8ZVb8CQoTgUz
+Qnr44jG77XnMbu5dzNll42qzzHbQctTtMHay8l30RTZbLoferrMqhtluZ7AhHNyCn4hyEvks
+9QWGU/7httVTRGVf/ddYm0MRr0kAAAGrSURBVBdDXRFSsXFfZDUcrN/l9kMx9HadVTmMfVNs
+CIe34OdhRkjFuwG9U8H2i+LmwTltez4YjDU28tiJbjiWjVd+OdzD/hfDFXBwC34eZofUX8RP
+OLNC2pzYKqe72hD1kIqLvMHSxW4Od35sX3FQC34eBnOomOojk8wn4Go0pJFT2LyQViNJjVwo
+2mBjQ/s45QUiIR2zBT8Pg9cHQUi9iEZOAz5CLaSRM0U3MVjv23pIvcdndRHScVvy81Be/ewO
+6Y+Hu51/zwpp9JKrmxisbGR0x2vrENKxW/LzsL1OWm1uGPljv1ilEtL2rbTRKrrinmLrY28x
+FIOt+sNsN+pDr8r7x77orxAfNryERT8P5dtyu0PqbPbb9dLDt9sR+0v33nIe2XpvxV57xWDb
+lz/bD8XQO14jDfaFkI7Ewp+H3kwtp9VESN1TOn42ehpwsLS9WhnZen/F/sdBef1FVquuHHqz
+zuALq7rcEA6O5+GQyOBk8EweEiGdDJ7JQyKkk8EzeUiEdDJ4JoEGCAlogJCABggJaICQgAYI
+CWiAkIAGCAlogJCABggJaOD/AcfY8HsI7VuCAAAAAElFTkSuQmCC"
+width=420
+height=420
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="AC">AC<a class="anchor-link" href="#AC">&#182;</a></h4>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">merged_data</span><span class="o">$</span><span class="n">sum_data[[1]]</span><span class="o">%&gt;%</span><span class="nf">filter</span><span class="p">()</span><span class="o">%&gt;%</span><span class="nf">ggplot</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">pval_ac</span><span class="p">,</span><span class="n">fill</span> <span class="o">=</span> <span class="n">pv_less</span> <span class="p">))</span><span class="o">+</span><span class="nf">geom_histogram</span><span class="p">()</span><span class="o">+</span>
+<span class="nf">ggtitle</span><span class="p">(</span><span class="s">&quot;Distribution of MvSuSiE CV P value for AC&quot;</span><span class="p">)</span><span class="o">+</span><span class="nf">xlab</span><span class="p">(</span><span class="s">&quot;CV P value for Gene expression&quot;</span><span class="p">)</span><span class="o">+</span><span class="nf">labs</span><span class="p">(</span><span class="n">fill</span> <span class="o">=</span> <span class="s">&quot;MvSuSiE with lower P value&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAAAw1BMVEUAAAAAv8QzMzNBQUFE
+RERNTU1cXFxhYWFpaWlra2tvb291dXV3d3d5eXl7e3uCgoKGhoaOjo6SkpKVlZWbm5ucnJye
+np6fn5+jo6Onp6erq6uurq6xsbGzs7O5ubm9vb3CwsLGxsbHx8fNzc3W1tbX19fZ2dnb29vk
+5OTl5eXm5ubr6+vs7Ozt7e3u7u7v7+/w8PDx8fHy8vLz8/P09PT19fX29vb39/f4dm34+Pj5
++fn6+vr7+/v8/Pz9/f3+/v7////R+g5FAAAACXBIWXMAABJ0AAASdAHeZh94AAAgAElEQVR4
+nO2djX/c2Hmdj7WW67Zbt3Wa9Dvph5s4ieNdSSvJkigJ//9f1V1RMwNgcEC8h6QwfOd5fjE5
+wNyDe+fwPhyQZmQNAHBvtPcCADqgvRcA0AHtvQCADmjvBQB0QHsvAKAD2nsBAB3Q3gsA6ID2
+XgBAB3SP6IGvR3bYypOrTy1MeJ45yx9X5E5/+azp6k9jNL3o+NHZ+MVp7nh67fnlxcBTQPeI
+Tvbi9Is+OvIifd3RlfnOrj7Pm+1+ttIFkUZn1kRaX+/603fElxcDTwHdI6rD5/OLnG3vtQsU
+55vMqLnAWlrS+enzuQ9PTkyafUNYuLRdZPLs8Xltmw0uBt0jqvmDhefsCHv27vlWRVqdf12k
+0QMv0j1VWX/2vFJEeiLoHlGNHx2/5+twXzIc/+/20/gW8OuJr09PfzqZ3tAcnhnf6Mwfna48
+i/rTSzd/C69tTaSzG8V5FdOljkZNX+14At6Iniq6R1TjR+MNtSDSaBN9TYxFGj89Nmb0zDaR
+hnF47fSCSAuH51oOS5fX8cNcJE0nHr8UHWoYT3CcZICnhe4R1fjRSKbTBw2jnTbewWcjzzOj
+Sea7evRGNt+5Y2fWTh+EnU40f3Fnb43niTNzzBPzq45e7fmMiPTk0D2iGj8afT8dxntl/o12
+SaTlp0cPzu2aiDSb/LA/z7fxeO5UpOmY+dU3iHT2as9nRKQnh+4R1fjR6Z7l+NxjijSV93xT
+Tuc/P322Vecn5pdc2Nzj9R5e+VykBVutSLP64Cmhe0Q1fjTaUcNkx+wh0nz+89MLIml2vF0k
+Lb2cswvMpj5/Fx3reDYZXDa6R1TjBwtHjyrSLysfTfL1lRzGLM+/JtJ8zg0izWa9r0jz2d2s
+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
+IlJhiVMQ6YJQnHT9F/ciIhWWOAWRLgjFSdd/cS8iUmGJUxDpglCcdP0X9yIiFZY4BZEuCMVJ
+139xLyJSYYlTEOmCUJx0/Rf3IiIVljgFkS4IxUnXf3EvIlJhiVMQ6YJQnHT9F/ciIhWWOAWR
+LgjFSdd/cS8iUmGJUxDpglCcdP0X9yIiFZY4BZEuCMVJ139xLyJSYYlTEOmCUJx0/Rf3IiIV
+ljgFkS4IxUnXf3EvIlJhiVMQ6YJQnHT9F/ciIhWWOAWRLgjFSdd/cS8iUmGJUxDpglCcdP0X
+9yIiFZY4BZEuCMVJ139xLyJSYYlTEOmCUJx0/Rf3IiIVljgFkS4IxUnXf3EvIlJhiVMQ6YJQ
+nHT9F/ciIhWWOAWRLgjFSdd/cS8iUmGJUxDpglCcdP0X9yIiFZY4BZEuCBXGPv+Z05Hrv7gX
+EamwxCmIdEFo+9Dnxw9fcP0X9yIiFZY4BZEuCG0fikj26oh09Wj7UESyV0ekq0fbh55E+pvf
+/va3//aDobgXH1kkt8oFPtcXf4gOn5df+3yK2Wv95dTNp8ISp9wMH+Psx7uj86/M4fyn4WY8
+7N2j7Msnh7YPPYn0u2fPnv36UZYDT46bvRdwGWj70JNIb168ePHyT6v8NLxaH7DCuzuuvcL7
+4V/i7Kc4+afhJo7++D6Ovhxex9k3P8XRt8OP48NXj7IvnxzaPnTjz0i3vBpehnfvP9+Ev4ij
+74c/xdlPcfL4M1LA5f6M5OBnpCW0fSgiWRDp6tH2oYhkQaSrR4Wx2/6y4RZE2ggi9UBxcr1t
+RNoIIvVAcXK9bUTaCCL1QHFyvW1E2ggi9UBxcr1tRNoIIvVAcXK9bUTaCCL1QHFyvW1E2ggi
+9UBxcr1tRNoIIvVAcXK9bUTaCCL1QHFyvW1E2ggi9UBxcr1tRNoIIvVAcXK9bUTaCCL1QHFy
+vW1E2ggi9UBxcr1tRNoIIvVAcXK9bUTaCCL1QHFyvW1E2ggi9UBxcr1tRNoIIvVAcXK9bUTa
+CCL1QHFyvW1E2ggi9UBxcr1tRNoIIvVAcXK9bUTaCCL1QHFyvW1E2ggi9UBxcr1tRNoIIvVA
+cXK9bUTaCCL1QHFyvW1E2ggi9UBxcr1tRNoIIvVAcXK9bUTaCCL1QHFyvW1E2ggi9UBxcr1t
+RNoIIvVAj3Td//Hd3z7SlVf5d9+92GHWz9/96x1mHf73d/9lj2n/43f/sMe0F44e6br/7dn/
+fKQrr/Jvnv24w6yfn/2rHWYd/tezv95j2v/w7O/3mPbC0SNdF5EeH0S6IPRI10WkxweRLgg9
+0nX/z/f/95GuvMp//v71DrN+/v6vdph1+H/f/90e0/737/9xj2kvHO29AIAOaO8FAHRAey8A
+oAN68CuO/iebp//rzY/LZK49Zt3pxe7W8Tds+Smgh77g8+OH8cNHZzzXt9ta+7/YvTr+5REi
+jdBDX/AivsiI9MjTfnmASCP00Be8kC/yHrPu9dawy7TPubWboIe+4DWLdEX+Pv920z4N9NAX
+vGKRvt0P/ePZ2v9E+DTQQ1/wekX6dvtq/3ckRJqjh77g1Yr0DbfVBYh0y7eZ90mgh77gtYr0
+LTfVRXTMO9IEPfQFD20/3+eL/G139fzF7jTtLh0j0gQ9+BW/vuU/Pz38Joym/ZY/9h9n/ab3
+OpfQMSJN0N4LAOiA9l4AQAe09wIAOqC9FwDQAe29AIAOaO8FAHRAey8AoAPaewEAHdDeCwDo
+gPZeAEAHtPcC7od+4euj07nxkzo9sXyBu66/afZvwTecCspo7wXcB41UWRFJ58nhbLCdYNPs
+3wJEumS09wLuwenNSMNpn50ZtbrV8/crbbk8XAvaewH3YPTWM6yIdIcOm2a4c3a4crT3AnJm
+bwUbRLp98FW70/vY6PTkZm5026jjmNNF51c9XWb0ZjVe4njIceb5pU8ZzS5zmudsItgd7b2A
+nPkmGu/S8YDzLX97TgeJ5n6dhuvrmJF25m1uOkTnF5t6efowu/QpM9VYkwXOJoL90d4LyNkg
+0mnbzUZM3o1mp4elwHBSYGn2+ZvEwsVm1xpdb/7wfIXTB+cB2B3tvYCczSJNh4zfcDaJdHxj
+M2937hJepOH0rjMsjZ4t83zxS2uFXdHeC8g520Ozrb6wycYb8GTA5O3k/C1sm0jjCy5ebHJ4
+/mm8rMk93ugBIl0u2nsBOZpvooJIE4kW3gbGV3AiaTRo6W5wdrHJoRdpPOb4vjVzHpEuD+29
+gHswv/u5W6RfXq6OT91LpOnsRZFOisyu4DKIdOlo7wXcg9N9ko4nNHl+KaLjU5PdebifGpat
+GGbPzGaf33wtXEzTy5wmHV9a8+eXHkwDZ68R9kB7L+A+6MDoePL0UuQw8mDA4dbpsLPHFxnd
+Wp2JdJp9Epy4N7vYccjow+zS40HjK59fE5EuCu29gPsx2anzbbUi0nBQZ/xudLjg2ejjLGd3
+XkcDh+mQpYstDLnVeXLpY+bswcjq+USwO9p7AVcNGrRBey/gqkGkNmjvBVw1iNQG7b2AqwaR
+2qC9FwDQAe29AIAOaO8FAHRAey8AoAPaewEAHdDeCwDogPZeAEAHtPcCADqgvRcA0AHtvQCA
+Dvx/o40tdroHOwcAAAAASUVORK5CYII="
+width=420
+height=420
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Summary-Statistics-Comparison">Summary Statistics Comparison<a class="anchor-link" href="#Summary-Statistics-Comparison">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[71]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">dat</span> <span class="o">=</span> <span class="nf">data.frame</span><span class="p">()</span>
+<span class="nf">for</span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="m">3</span><span class="p">){</span>
+    <span class="nf">colnames</span><span class="p">(</span><span class="n">merged_data</span><span class="o">$</span><span class="n">sum_data[[i]]</span><span class="p">)</span><span class="n">[23]</span> <span class="o">=</span> <span class="s">&quot;susie_cv_pv&quot;</span>
+             <span class="p">}</span>
+
+<span class="n">merged_data</span><span class="o">%&gt;%</span><span class="nf">mutate</span><span class="p">(</span><span class="n">tissue</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="s">&quot;AC&quot;</span><span class="p">,</span><span class="s">&quot;DLPFC&quot;</span><span class="p">,</span><span class="s">&quot;PCC&quot;</span><span class="p">))</span><span class="o">%&gt;%</span>
+                            <span class="nf">select</span><span class="p">(</span><span class="n">tissue</span><span class="p">,</span> <span class="n">sum_data</span><span class="p">)</span><span class="o">%&gt;%</span>
+                                    <span class="nf">unnest</span><span class="p">(</span><span class="n">sum_data</span><span class="p">)</span><span class="o">%&gt;%</span>
+                                    <span class="nf">group_by</span><span class="p">(</span><span class="n">tissue</span><span class="p">)</span><span class="o">%&gt;%</span>
+                                    <span class="nf">summarise</span><span class="p">(</span><span class="n">mean_susie_pv</span> <span class="o">=</span> <span class="nf">mean</span><span class="p">(</span><span class="n">susie_cv_pv</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">4</span><span class="p">),</span>
+                                              <span class="n">median_susie_pv</span> <span class="o">=</span> <span class="nf">median</span><span class="p">(</span><span class="n">susie_cv_pv</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">4</span><span class="p">),</span>
+                                              <span class="n">var_susie_pv</span> <span class="o">=</span> <span class="nf">var</span><span class="p">(</span><span class="n">susie_cv_pv</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">4</span><span class="p">),</span>
+                                              <span class="n">mean_fusion_pv</span> <span class="o">=</span> <span class="nf">mean</span><span class="p">(</span><span class="n">MODELCV.PV</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">4</span><span class="p">),</span>
+                                              <span class="n">median_fusion_pv</span> <span class="o">=</span> <span class="nf">median</span><span class="p">(</span><span class="n">MODELCV.PV</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">4</span><span class="p">),</span>
+                                              <span class="n">var_fusion_pv</span> <span class="o">=</span> <span class="nf">var</span><span class="p">(</span><span class="n">MODELCV.PV</span><span class="p">)</span><span class="o">%&gt;%</span><span class="nf">round</span><span class="p">(</span><span class="m">4</span><span class="p">)</span>
+                                             <span class="p">)</span><span class="o">%&gt;%</span><span class="n">knitr</span><span class="o">::</span><span class="nf">kable</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_text output_subarea ">
+<pre>
+
+|tissue | mean_susie_pv| median_susie_pv| var_susie_pv| mean_fusion_pv| median_fusion_pv| var_fusion_pv|
+|:------|-------------:|---------------:|------------:|--------------:|----------------:|-------------:|
+|AC     |        0.0648|          0.0112|       0.0076|         0.0709|           0.0277|        0.0070|
+|DLPFC  |        0.0486|          0.0108|       0.0058|         0.0566|           0.0180|        0.0069|
+|PCC    |        0.0724|          0.0272|       0.0090|         0.0717|           0.0446|        0.0061|</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<hr>
+&copy 2020-2021 Hao Sun, Department of Neurology, Columbia University
+<p><small>Exported from <a href="http://github.com/hsun3163/neuro-twas/blob/c53f4aaee16bd0dabf13af128ed5e76b62601124/analysis/pilot_performance_comparison.ipynb"><code>analysis/pilot_performance_comparison.ipynb</code></a> committed by Hao Sun on Tue May 11 18:13:16 2021 <a href="http://github.com/hsun3163/neuro-twas/commit/c53f4aaee16bd0dabf13af128ed5e76b62601124">revision 1, c53f4aa</a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+</div>
+</div>
+</body>
+</html>
