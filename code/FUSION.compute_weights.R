@@ -312,7 +312,6 @@ cv_data_gen = function(X,Y,times,test_prop){
 
 # --- CROSSVALIDATION ANALYSES
 set.seed(1)
-CV_times = 100
 cv.performance = matrix(0,nrow=2,ncol=M)
 rownames(cv.performance) = c("rsq","pval")
 colnames(cv.performance) = models

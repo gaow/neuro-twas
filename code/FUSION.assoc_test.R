@@ -1,5 +1,8 @@
 suppressMessages(library('plink2R'))
 suppressMessages(library("optparse"))
+suppressMessages(library("dplyr"))
+
+
 
 option_list = list(
   make_option("--sumstats", action="store", default=NA, type='character',
@@ -121,6 +124,14 @@ if ( !is.na(opt$perm) && opt$perm > 0 ) {
 
 # Load in reference data
 genos = read_plink(opt$ref_ld_chr,impute="avg")
+
+
+
+# Temp: Limit the bim to the window of sumstat
+genos$bim = genos$bim%>%filter(V4 > sumstat$cood38[1],V4 < sumstat$cood38[nrow(sumstat)])
+genos$bed = genos$bed[,(colnames(genos$bed)%in%genos$bim$V2)]
+
+
 
 # Match summary data to input, record NA where summary data is missing
 m = match( genos$bim[,2] , sumstat$SNP )
