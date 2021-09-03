@@ -42,4 +42,8 @@ hosts:
     based_on: hosts.neurology
     partition: $ -q csg.q
     PE: $ -pe orte {cores}
+  high_mem:
+    based_on: hosts.neurology
+    partition: $ -q high_mem.q
+
 localhost: localhost

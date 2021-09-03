@@ -1,6 +1,5 @@
 suppressMessages(library('plink2R'))
 suppressMessages(library("optparse"))
-suppressMessages(library("dplyr"))
 
 
 
@@ -128,8 +127,8 @@ genos = read_plink(opt$ref_ld_chr,impute="avg")
 
 
 # Temp: Limit the bim to the window of sumstat
-genos$bim = genos$bim%>%filter(V4 > sumstat$cood38[1],V4 < sumstat$cood38[nrow(sumstat)])
-genos$bed = genos$bed[,(colnames(genos$bed)%in%genos$bim$V2)]
+#genos$bim = genos$bim%>%filter(V4 > sumstat$cood38[1],V4 < sumstat$cood38[nrow(sumstat)])
+#genos$bed = genos$bed[,(colnames(genos$bed)%in%genos$bim$V2)]
 
 
 
