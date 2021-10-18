@@ -37,11 +37,12 @@ hosts:
     max_walltime: '240:00:00'
     status_cmd: qstat -j {job_id}
     submit_cmd: qsub {job_file}
-    submit_cmd_output: Your job {job_id} ("{job_name}") has been submitted
+#    submit_cmd_output: Your job {job_id} ("{job_name}") has been submitted
   csg: 
     based_on: hosts.neurology
     partition: $ -q csg.q
     PE: $ -pe orte {cores}
+    submit_cmd_output: 'Your job {job_id} ("{job_name}") has been submitted'
   high_mem:
     based_on: hosts.neurology
     partition: $ -q high_mem.q
